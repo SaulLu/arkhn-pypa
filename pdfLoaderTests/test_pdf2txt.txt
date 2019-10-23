@@ -1,0 +1,84 @@
+DIRECTION GÉNÉRALE DE L’AUDIT ET DES RISQUES
+DIRECTION DES AUDITS DE SÉCURITÉ
+Audit de Sécurité National Opérationnel
+20 rue de Rome - 75008 PARIS
+TÉL. : +33 (0)1 53 42 08 50
+                                                           Monsieur Xavier OUIN
+                                                           Directeur Général du Matériel
+                                                           Paris, le 03 octobre 2019
+N/R : AS1100 - ANS M - XL - 2019 / n°253
+ Objet : Résultat de l’Audit de Sécurité du Technicentre HELLEMMES réalisé par la Direction des Audits de
+             Sécurité (DAS) en 6/2019
+             L'établissement Technicentre HELLEMMES a été audité par la Direction des Audits de Sécurité
+             dans le cadre du nouvel Audit National de Sécurité (ANS) du 11/6/2019 au 26/6/2019.
+             Il s'agit du premier audit de ce type réalisé dans cette entité.
+             Conformément à la procédure en vigueur au plan national , l’audit a évalué :
+                     • le niveau de sécurité des 15 domaines opérationnels de cet établissement concernés par
+                     des activités impliquant la Sécurité,
+                     • la qualité du management de la Sécurité.
+             Un rapport d’audit détaillé vous est transmis et commenté par la DAS. Vous trouverez ci-après en
+             annexes 1 et 2 une synthèse de l’évaluation de cet établissement.
+             Le Chef de la Mission ANS Matériel
+                                                              SOCIETE NATIONALE DES CHEMINS DE FER FRANÇAIS – RCS BOBIGNY 808 332 670
+Copie par courriel à:
+              SNCF:
+              - M. le Directeur Général Sécurité du Groupe Public Ferroviaire
+              - M. le Directeur Général de l'Audit et des Risques
+              - M. le Directeur Ressources Humaines du Groupe Public Ferroviaire
+              - Mme la Directrice Délégué Santé et Sécurité au Travail
+              - M. l'Inspecteur Général Sécurité Ferroviaire
+              - M. le Responsable du Pôle Sécurité Système de la Direction Générale Sécurité
+              SNCF Mobilités:
+              - M. le Directeur Général Sécurité
+              - M. le Directeur de la Sécurité Mobilités
+              - M. le Directeur Délégué Sécurité Mobilités
+              - Mme le Chef du Département Matériel Sécurité de la Direction du Matériel
+              - M. le Directeur du Technicentre Industriel d'Hellemmes
+                 Annexe 1 : Evaluation des domaines de l’Opérationnel
+L'évaluation ci-dessus est déterminée suivant les principes définis pour l' Audit National de Sécurité (ANS). Celle-ci prend en compte
+tous les écarts relevés impactant la Sécurité de l'Exploitation Ferroviaire (SEF) et la Sécurité Santé au Travail (SST). Chaque écart
+est pondéré en fonction de son niveau de criticité.
+L'évaluation ci-dessus est déterminée suivant les principes de l'audit ASNO. Elle ne prend en compte que les écarts relevant de la
+SEF. Elle permet donc d'évaluer l'évolution du niveau de sécurité de l'Opérationnel de l'entité auditée par rapport au précédent audit
+ASNO. Cette évaluation n'intègre que les écarts impactant la SEF et son principe de calcul diffère sensiblement du nouvel Audit de
+Sécurité. Cette évaluation ne peut donc pas être comparée à celle du nouvel Audit National de Sécurité.
+    Les Domaines de l'Opérationnel sont évalués comme :
+    Domaine Insuffisant :
+        - La gestion des parcs
+    Domaines Moyens :
+        - Maintenance de la caisse, des portes et des organes de chocs et traction
+        - Maintenance des équipements d’assistance
+        - Maintenance des Installations et Outillages et moyens de lutte contre l’incendie dans les locaux
+    Domaines Acceptables :
+        - Maintenance du bogie
+        - Maintenance de l'essieu
+        - Gestion des sites et des locaux de l'établissement (hors Unités élémentaires)
+        - Manœuvres, mouvement et opérations de station service
+    Domaine Satisfaisant :
+        - Maintenance du frein
+        - Maintenance des organes de captage du courant de traction
+        - Maintenance des équipements électriques (équipements de climatisation)
+        - Techniques Métiers
+        - Interventions complètes
+        - Activités concourantes (stockage des composants)
+        - Ingénierie de maintenance
+                  Annexe 2 : Evaluation des domaines du Management
+L'évaluation ci-dessus est déterminée suivant les principes définis pour l'Audit National de Sécurité. Celle-ci intègre des
+domaines/sous-domaines du Management relevant de la Sécurité de l'Exploitation Ferroviaire (SEF) et/ou de la Sécurité Santé au
+Travail (SST).
+L'évaluation ci-dessus est déterminée suivant les principes de l'audit ASNO. Elle ne prend en compte que les domaines/sous-
+domaines relevant de la SEF. Elle permet donc d'évaluer l'évolution du niveau de sécurité du Management de l'entité auditée par
+rapport au précédent audit ASNO . Le principe de calcul diffère sensiblement du Nouvel Audit de Sécurité.
+Cette évaluation ne peut donc pas être comparée à celle du nouvel Audit National de Sécurité
+Les Domaines du Management sont évalués comme :
+Domaine Insuffisant :
+    - Veille et contrôle
+Domaines Moyens :
+    - Organisation, missions et pilotage
+    - Performance des acteurs (compétences et formations)
+    - Amélioration (plans d'actions)
+Domaines Acceptables :
+    - Documentation
+    - Retour d'expérience (REX)
+Domaine Satisfaisant :
+    Aucun
