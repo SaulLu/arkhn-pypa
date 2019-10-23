@@ -1,6 +1,11 @@
-# alpine is a lightweight linux distro
 FROM python:3.7-alpine
-COPY . /src
-WORKDIR /src
+
+WORKDIR /srv
+
+COPY requirements.txt /srv/requirements.txt
 RUN pip install -r requirements.txt
+
+COPY ./src /srv
+
 CMD ["python", "main.py"]
+
