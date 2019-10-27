@@ -18,14 +18,14 @@ def pdf2txt(input_path, output_path, singlefile=True):
         pdf = pdftotext.PDF(f_pdf)
 
     if singlefile:
-        f_txt = open(output_path, "w+")
-        for page in pdf:
-            f_txt.write(page)
+        with open(output_path, "w+") as f_txt:
+            for page in pdf:
+                f_txt.write(page)
     else:
         i = 1
         for page in pdf:
-            f_txt = open(output_path + "/Page" + str(i), "w+")
-            f_txt.write(page)
+            with open(output_path + "/Page" + str(i), "w+") as f_txt:
+                f_txt.write(page)
 
 
 def pdf2ppm(input_path, output_path, greyscale=True, dpi=20):
