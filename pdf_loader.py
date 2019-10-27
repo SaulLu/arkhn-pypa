@@ -2,6 +2,7 @@ import pdftotext
 from pdf2image import convert_from_path, convert_from_bytes
 import numpy as np
 import pdftotree
+from path import Path
 
 
 def pdf2txt(input_path, output_path, singlefile=True):
@@ -24,7 +25,7 @@ def pdf2txt(input_path, output_path, singlefile=True):
     else:
         i = 1
         for page in pdf:
-            with open(output_path + "/Page" + str(i), "w+") as f_txt:
+            with open(output_path + Path("/Page") + str(i), "w+") as f_txt:
                 f_txt.write(page)
 
 
