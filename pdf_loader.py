@@ -41,7 +41,7 @@ def pdf2ppm(input_path, output_path, greyscale=True, dpi=20):
     """
 
     images = convert_from_path(
-        input_path, output_folder=output_path, grayscale=greyscale, dpi
+        input_path, output_folder=output_path, grayscale=greyscale, dpi=dpi
     )
 
 
@@ -56,7 +56,7 @@ def pdf2pix(input_path, page, greyscale=True, dpi=20):
     greyscale -- is false if the image must be in colors, is true otherwise (default True)
     dpi -- resolution in dots per inch (default 20)
     """
-    images = convert_from_path(input_path, grayscale=greyscale, dpi)
+    images = convert_from_path(input_path, grayscale=greyscale, dpi=dpi)
     img = images[page - 1]
     if greyscale:
         return np.reshape(np.array(list(img.getdata())), img.size)
