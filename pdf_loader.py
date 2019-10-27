@@ -45,16 +45,6 @@ def pdf2ppm(input_path, output_path, greyscale=True, dpi=20):
 
 
 def pdf2pix(input_path, page=1, greyscale=True, dpi=20):
-    """
-    Converts a pdf into an array of pixel values.
-    If greyscale is true, returns a numpy array height x width ; else returns a numpy array height x width x 3 (using rgb format).
-
-    Keyword arguments:
-    input_path -- the path to the pdf file to convert
-    page -- the index of the page to convert (starts from 1)
-    greyscale -- is false if the image must be in colors, is true otherwise (default True)
-    dpi -- resolution in dots per inch (default 20)
-    """
     """Converts a pdf into an array of pixel values.
 
     Args:
@@ -75,13 +65,13 @@ def pdf2pix(input_path, page=1, greyscale=True, dpi=20):
 
 
 def pdf2html(input_path, output_path):
-    """
-    Converts a pdf into a html file.
+    """Converts a pdf into a html file.
     
-    Keyword arguments:
-    input_path -- the path to the pdf file to convert
-    output_path -- the path to the folder to create the html file in
+    Args:
+        input_path (str): the path to the pdf file to convert
+        output_path (str): the path to the folder to create the html file in
     """
+    
     pdftotree.parse(input_path, html_path=output_path)
 
 
