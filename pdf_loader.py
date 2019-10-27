@@ -6,13 +6,12 @@ from path import Path
 
 
 def pdf2txt(input_path, output_path, singlefile=True):
-    """
-    Converts a pdf file into a txt file.
+    """Converts a pdf file into a txt file.
 
-    Keyword arguments:
-    input_path -- the path to the pdf file to convert
-    output_path -- the path to the folder to create the txt file in
-    singlefile -- is true to write the whole file into a single one, is false to write each pdf page in a separate txt file (default True)
+    Args:
+        input_path (str): the path to the pdf file to convert
+        output_path (str): the path to the folder to create the txt file in
+        singlefile (bool): is true to write the whole file into a single one, is false to write each pdf page in a separate txt file. Defaults to True.
     """
 
     with open(input_path, "rb") as f_pdf:
@@ -30,15 +29,14 @@ def pdf2txt(input_path, output_path, singlefile=True):
 
 
 def pdf2ppm(input_path, output_path, greyscale=True, dpi=20):
-    """
-    Converts a pdf file into ppm files (image).
+    """Converts a pdf file into ppm files (image).
     1 ppm file corresponds to 1 pdf page.
 
-    Keyword arguments:
-    input_path -- the path to the pdf file to convert
-    output_path -- the path to the folder to create the ppm files in
-    greyscale -- is false if the image must be in colors, is true otherwise (default True)
-    dpi -- resolution in dots per inch (default 20)
+    Args:
+        input_path (str): the path to the pdf file to convert
+        output_path (str): the path to the folder to create the ppm/pgm file in
+        greyscale (bool): is false if the image must be in colors, is true otherwise. Defaults to True.
+        dpi (int): output resolution in dots per inch. Defaults to 20.
     """
 
     images = convert_from_path(
@@ -46,7 +44,7 @@ def pdf2ppm(input_path, output_path, greyscale=True, dpi=20):
     )
 
 
-def pdf2pix(input_path, page, greyscale=True, dpi=20):
+def pdf2pix(input_path, page=1, greyscale=True, dpi=20):
     """
     Converts a pdf into an array of pixel values.
     If greyscale is true, returns a numpy array height x width ; else returns a numpy array height x width x 3 (using rgb format).
@@ -56,6 +54,17 @@ def pdf2pix(input_path, page, greyscale=True, dpi=20):
     page -- the index of the page to convert (starts from 1)
     greyscale -- is false if the image must be in colors, is true otherwise (default True)
     dpi -- resolution in dots per inch (default 20)
+    """
+    """Converts a pdf into an array of pixel values.
+
+    Args:
+        input_path (str): the path to the pdf file to convert
+        page (int): the index of the page to convert (starts from 1). Defaults to 1.
+        greyscale (bool): is false if the image must be in colors, is true otherwise. Defaults to True.
+        dpi (int): output resolution in dots per inch. Defaults to 20.
+    
+    Returns:
+        array of pixel values : numpy array of dimensions height x width if greyscale is True or height x width x 3 if greyscale is False (using RGB format).
     """
     images = convert_from_path(input_path, grayscale=greyscale, dpi=dpi)
     img = images[page - 1]
