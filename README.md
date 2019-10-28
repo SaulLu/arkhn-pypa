@@ -1,6 +1,6 @@
 
 #### Use of a virtual environment
-For development purpose, we use a virtualenv to have the same librairy versions.
+For development purpose, we use a virtualenv to have the same library versions.
 
 **Initiate the virtual environment**
 This step has to be done only once.
@@ -12,20 +12,17 @@ virtualenv venv
 ```bash
 source venv/bin/activate
 ```
-Install the project librairies
+Install the project libraries
 ```bash
 pip install -r requirements.txt
 ```
 
 **Add library to the requirements**
-Once you started the virtual environment, install the librairy using pip
+Once you started the virtual environment, install the library using pip
 ```bash
 pip install <name>
 ```
-Then copy all your installed librairies to requirements.txt
-```bash
-pip freeze > requirements.txt
-```
+
 
 **Stop the virtual environment**
 ```bash
