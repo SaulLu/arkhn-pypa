@@ -1,0 +1,7 @@
+version: "3"
+services:
+  pypa:
+    build:
+      context: .
+    volumes:
+      - /tmp:/data
