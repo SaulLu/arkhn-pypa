@@ -1,0 +1,5 @@
+pdf2image==1.9.0
+pdftotree==0.4.0
+pdftotext==2.1.2
+numpy==1.16.4
+forked_path==0.2.3
