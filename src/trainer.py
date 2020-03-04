@@ -48,24 +48,24 @@ class TrainModel():
             
             self.model.train()
 
-            tr_loss = 0
-            nb_tr_examples, nb_tr_steps = 0, 0
+            loss_sum = 0
+            nb_tr_sentences, nb_tr_steps = 0, 0
 
-            for step, batch in enumerate(self.__train_loader):
+            for _, batch in enumerate(self.__train_loader):
                 
-                b_input_ids, b_input_mask, b_labels = batch
-                b_input_ids = b_input_ids.to(self.device)
-                b_input_mask = b_input_mask.to(self.device)
-                b_labels = b_labels.to(self.device)
+                input_ids, mask, tags = batch
+                input_ids = input_ids.to(self.device)
+                mask = mask.to(self.device)
+                tags = tags.to(self.device)
 
                 # forward pass
-                loss = self.model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask, labels=b_labels)
+                loss = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
                 # backward pass
                 loss.backward()
 
                 # track train loss
-                tr_loss += loss.item()
-                nb_tr_examples += b_input_ids.size(0)
+                loss_sum += loss.item()
+                nb_tr_sentences += input_ids.size(0)
                 nb_tr_steps += 1
 
                 # gradient clipping
@@ -75,25 +75,25 @@ class TrainModel():
                 self.__optimizer.step()
                 self.model.zero_grad()
             # print train loss per epoch
-            print("Train loss: {}".format(tr_loss/nb_tr_steps))
+            print("Train loss: {}".format(loss_sum/nb_tr_steps))
             
             # VALIDATION on validation set
             self.model.eval()
 
             eval_loss, eval_accuracy = 0, 0
-            nb_eval_steps, nb_eval_examples = 0, 0
+            nb_eval_steps, nb_eval_sentences = 0, 0
             predictions , true_labels = [], []
             for batch in self.__val_loader:
                 batch = tuple(t.to(self.device) for t in batch)
-                b_input_ids, b_input_mask, b_labels = batch
+                input_ids, mask, tags = batch
                 
                 with torch.no_grad():
-                    tmp_eval_loss = self.model(b_input_ids, token_type_ids=None,
-                                        attention_mask=b_input_mask, labels=b_labels)
-                    logits = self.model(b_input_ids, token_type_ids=None,
-                                attention_mask=b_input_mask)
+                    tmp_eval_loss = self.model(input_ids, token_type_ids=None,
+                                        attention_mask=mask, labels=tags)
+                    logits = self.model(input_ids, token_type_ids=None,
+                                attention_mask=mask)
                 logits = logits.detach().cpu().numpy()
-                label_ids = b_labels.to('cpu').numpy()
+                label_ids = tags.to('cpu').numpy()
                 predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
                 true_labels.append(label_ids)
                 
@@ -102,11 +102,13 @@ class TrainModel():
                 eval_loss += tmp_eval_loss.mean().item()
                 eval_accuracy += tmp_eval_accuracy
                 
-                nb_eval_examples += b_input_ids.size(0)
+                nb_eval_sentences += input_ids.size(0)
                 nb_eval_steps += 1
+            
             eval_loss = eval_loss/nb_eval_steps
             print("Validation loss: {}".format(eval_loss))
             print("Validation Accuracy: {}".format(eval_accuracy/nb_eval_steps))
+            
             pred_tags = [self.idx2tag[p_i] for p in predictions for p_i in p]
             valid_tags = [self.idx2tag[l_ii] for l in true_labels for l_i in l for l_ii in l_i]
             print("F1-Score: {}".format(f1_score(pred_tags, valid_tags)))
