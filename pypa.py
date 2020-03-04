@@ -17,9 +17,17 @@ def main():
     n_epochs = args.n_epochs
     batch_size = args.batch_size
 
+    data_path = args.data_path
+
     mode = args.mode
 
-    dataset = NerDataset() #to fill
+    dataset = NerDataset(
+        data_path=data_path,
+        encoding="latin1",
+        max_len=75,
+        pretrained_model="bert-base-uncased"
+        )
+    
     train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
 
     if mode == 'train':
@@ -39,6 +47,11 @@ def main():
         }
 
         trainer.train(**config)
+    
+    else:
+        #todo
+        #tagger = Tagger()
+        pass
 
 def __set_argparse():
     parser = argparse.ArgumentParser()
@@ -63,7 +76,7 @@ def __set_argparse():
     # batch_size
     # path_previous_model
     # full_finetuning
-    # path to data_csv
+    # data_path
     return(parser)
 
 def __dataloader(dataset, val_size, test_size, batch_size):
