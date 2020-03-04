@@ -1,4 +1,12 @@
 import argparse
+import numpy as np
+
+from torch.utils.data import DataLoader, RandomSampler
+from torch.utils.data.sampler import SubsetRandomSampler
+
+from src.dataset import NerDataset
+from src.trainer import TrainModel
+
 
 def main():
     parser = __set_argparse()
@@ -6,11 +14,13 @@ def main():
 
     val_size = args.val_size
     test_size = args.test_size
+    n_epochs = args.n_epochs
+    batch_size = args.batch_size
 
     mode = args.mode
 
     dataset = NerDataset() #to fill
-    train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size)
+    train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
 
     if mode == 'train':
         trainer = TrainModel(
@@ -22,7 +32,13 @@ def main():
             batch_size=100, 
             path_previous_model=None, 
             full_finetuning=True
-    )
+        )
+
+        config = {
+        "n_epochs": n_epochs
+        }
+
+        trainer.train(**config)
 
 def __set_argparse():
     parser = argparse.ArgumentParser()
@@ -50,7 +66,7 @@ def __set_argparse():
     # path to data_csv
     return(parser)
 
-def __dataloader(dataset, val_size, test_size):
+def __dataloader(dataset, val_size, test_size, batch_size):
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
     split_val = int(np.floor(val_size * dataset_size))
@@ -66,26 +82,26 @@ def __dataloader(dataset, val_size, test_size):
 
     train_loader = DataLoader(
         dataset, 
-        batch_size=self.batch_size, 
+        batch_size=batch_size, 
         drop_last=True,
         sampler=train_sampler
     )
 
     val_looader = DataLoader(
         dataset, 
-        batch_size=self.batch_size, 
+        batch_size=batch_size, 
         drop_last=True,
         sampler=valid_sampler
     )
 
     test_loader = DataLoader(
         dataset, 
-        batch_size=self.batch_size, 
+        batch_size=batch_size, 
         drop_last=True,
         sampler=test_sampler
     )
 
     return train_loader, val_looader, test_loader
 
-if if __name__ == "__main__":
+if __name__ == "__main__":
     main()
