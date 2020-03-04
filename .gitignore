@@ -4,3 +4,6 @@ training code library/
 # virtual environment
 venv/
 .vscode/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
