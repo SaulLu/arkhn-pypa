@@ -100,7 +100,7 @@ def __dataloader(dataset, val_size, test_size, batch_size):
         sampler=train_sampler
     )
 
-    val_looader = DataLoader(
+    val_loader = DataLoader(
         dataset, 
         batch_size=batch_size, 
         drop_last=True,
@@ -114,7 +114,7 @@ def __dataloader(dataset, val_size, test_size, batch_size):
         sampler=test_sampler
     )
 
-    return train_loader, val_looader, test_loader
+    return train_loader, val_loader, test_loader
 
 if __name__ == "__main__":
     main()
