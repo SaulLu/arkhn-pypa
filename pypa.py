@@ -18,6 +18,7 @@ def main():
     batch_size = args.batch_size
 
     data_path = args.data_path
+    pretrained_model = args.pretrained_model
 
     mode = args.mode
 
@@ -63,20 +64,46 @@ def __set_argparse():
         help="")
     parser.add_argument(
         "--val_size",
-        type=int,
+        type=float,
         default=0.2,
         help="")
     parser.add_argument(
         "--test_size",
-        type=int,
+        type=float,
         default=0.2,
         help="")
-    # to add
-    # pretrained_model
-    # batch_size
-    # path_previous_model
-    # full_finetuning
-    # data_path
+    parser.add_argument(
+        "--n_epochs",
+        type=int,
+        default=1,
+        help="")
+    parser.add_argument(
+        "--pretrained_model",
+        type=str,
+        default='bert-base-uncased',
+        help="")
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=10,
+        help="")
+    parser.add_argument(
+        "--full_finetuning",
+        type=bool,
+        default=True,
+        help="")
+    
+    last_prev_model = None
+    parser.add_argument(
+        "--path_previous_model",
+        type=str,
+        default=last_prev_model,
+        help="")
+    parser.add_argument(
+        "--data_path",
+        type=str,
+        default='data/inputs/2009/dataframe_final_clean.csv',
+        help="")
     return(parser)
 
 def __dataloader(dataset, val_size, test_size, batch_size):
