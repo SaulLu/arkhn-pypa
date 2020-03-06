@@ -51,7 +51,7 @@ class TrainModel():
             loss_sum = 0
             nb_tr_sentences, nb_tr_steps = 0, 0
 
-            for _, batch in enumerate(self.__train_loader):
+            for batch in self.__train_loader:
                 
                 input_ids, mask, tags = batch
                 input_ids = input_ids.to(self.device)
@@ -106,12 +106,12 @@ class TrainModel():
                 nb_eval_steps += 1
             
             eval_loss = eval_loss/nb_eval_steps
-            print("Validation loss: {}".format(eval_loss))
-            print("Validation Accuracy: {}".format(eval_accuracy/nb_eval_steps))
+            print(f"Validation loss: {eval_loss}")
+            print(f"Validation Accuracy: {eval_accuracy/nb_eval_steps}")
             
             pred_tags = [self.idx2tag[p_i] for p in predictions for p_i in p]
             valid_tags = [self.idx2tag[l_ii] for l in true_labels for l_i in l for l_ii in l_i]
-            print("F1-Score: {}".format(f1_score(pred_tags, valid_tags)))
+            print(f"F1-Score: {f1_score(pred_tags, valid_tags)}")
 
             path_save_model = '../data/models/test_model' \
                                 + time.strftime("%Y%m%d_%H%M%S") \
