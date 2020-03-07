@@ -19,6 +19,8 @@ def main():
 
     data_path = args.data_path
     pretrained_model = args.pretrained_model
+    path_previous_model = args.path_previous_model
+    full_finetuning = args.full_finetuning
 
     mode = args.mode
 
@@ -37,10 +39,10 @@ def main():
             val_loader=val_loader, 
             tag2idx=dataset.tag2idx, 
             idx2tag=dataset.idx2tag, 
-            pretrained_model='bert-base-uncased', 
-            batch_size=100, 
-            path_previous_model=None, 
-            full_finetuning=True
+            pretrained_model=pretrained_model, 
+            batch_size=batch_size, 
+            path_previous_model=path_previous_model, 
+            full_finetuning=full_finetuning
         )
 
         config = {
