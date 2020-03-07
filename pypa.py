@@ -1,4 +1,12 @@
 import argparse
+import numpy as np
+
+from torch.utils.data import DataLoader, RandomSampler
+from torch.utils.data.sampler import SubsetRandomSampler
+
+from src.dataset import NerDataset
+from src.trainer import TrainModel
+
 
 def main():
     parser = __set_argparse()
@@ -7,10 +15,26 @@ def main():
     val_size = args.val_size
     test_size = args.test_size
 
+    assert val_size + test_size <=1, 'The sum of the proportions of the valid and the test set cannot be greater than 1'
+
+    n_epochs = args.n_epochs
+    batch_size = args.batch_size
+
+    data_path = args.data_path
+    pretrained_model = args.pretrained_model
+    path_previous_model = args.path_previous_model
+    full_finetuning = args.full_finetuning
+
     mode = args.mode
 
-    dataset = NerDataset() #to fill
-    train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size)
+    dataset = NerDataset(
+        data_path=data_path,
+        encoding="latin1",
+        max_len=75,
+        pretrained_model="bert-base-uncased"
+        )
+    
+    train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
 
     if mode == 'train':
         trainer = TrainModel(
@@ -18,11 +42,22 @@ def main():
             val_loader=val_loader, 
             tag2idx=dataset.tag2idx, 
             idx2tag=dataset.idx2tag, 
-            pretrained_model='bert-base-uncased', 
-            batch_size=100, 
-            path_previous_model=None, 
-            full_finetuning=True
-    )
+            pretrained_model=pretrained_model, 
+            batch_size=batch_size, 
+            path_previous_model=path_previous_model, 
+            full_finetuning=full_finetuning
+        )
+
+        config = {
+        "n_epochs": n_epochs
+        }
+
+        trainer.train(**config)
+    
+    else:
+        #todo
+        #tagger = Tagger()
+        pass
 
 def __set_argparse():
     parser = argparse.ArgumentParser()
@@ -34,23 +69,60 @@ def __set_argparse():
         help="")
     parser.add_argument(
         "--val_size",
-        type=int,
+        type=float_between_0_and_1,
         default=0.2,
         help="")
     parser.add_argument(
         "--test_size",
-        type=int,
+        type=float_between_0_and_1,
         default=0.2,
         help="")
-    # to add
-    # pretrained_model
-    # batch_size
-    # path_previous_model
-    # full_finetuning
-    # path to data_csv
+    parser.add_argument(
+        "--n_epochs",
+        type=int,
+        default=1,
+        help="")
+    parser.add_argument(
+        "--pretrained_model",
+        type=str,
+        default='bert-base-uncased',
+        help="")
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=10,
+        help="")
+    parser.add_argument(
+        "--full_finetuning",
+        type=bool,
+        default=True,
+        help="")
+    
+    last_prev_model = None
+    parser.add_argument(
+        "--path_previous_model",
+        type=str,
+        default=last_prev_model,
+        help="")
+    parser.add_argument(
+        "--data_path",
+        type=str,
+        default='data/inputs/2009/dataframe_final_clean.csv',
+        help="")
+
     return(parser)
 
-def __dataloader(dataset, val_size, test_size):
+def float_between_0_and_1(x):
+    try:
+        x = float(x)
+    except ValueError:
+        raise argparse.ArgumentTypeError("%r not a floating-point literal" % (x,))
+
+    if x < 0.0 or x > 1.0:
+        raise argparse.ArgumentTypeError("%r not in range [0.0, 1.0]"%(x,))
+    return x
+
+def __dataloader(dataset, val_size, test_size, batch_size):
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
     split_val = int(np.floor(val_size * dataset_size))
@@ -66,26 +138,26 @@ def __dataloader(dataset, val_size, test_size):
 
     train_loader = DataLoader(
         dataset, 
-        batch_size=self.batch_size, 
+        batch_size=batch_size, 
         drop_last=True,
         sampler=train_sampler
     )
 
-    val_looader = DataLoader(
+    val_loader = DataLoader(
         dataset, 
-        batch_size=self.batch_size, 
+        batch_size=batch_size, 
         drop_last=True,
         sampler=valid_sampler
     )
 
     test_loader = DataLoader(
         dataset, 
-        batch_size=self.batch_size, 
+        batch_size=batch_size, 
         drop_last=True,
         sampler=test_sampler
     )
 
-    return train_loader, val_looader, test_loader
+    return train_loader, val_loader, test_loader
 
-if if __name__ == "__main__":
+if __name__ == "__main__":
     main()

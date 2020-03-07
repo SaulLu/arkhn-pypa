@@ -68,6 +68,8 @@ class NerDataset(Dataset):
 
         self.data = TensorDataset(self.input_ids, self.attention_masks, self.tags)
 
+        self.len = len(self.labels) # to check
+
     def __getitem__(self, idx):
         """Get the item whose index is idx
         
@@ -78,6 +80,14 @@ class NerDataset(Dataset):
             {(torch.Tensor, torch.Tensor, torch.Tensor)} -- tuple of tensors corresponding to input_ids, attention_masks and tags
         """
         return self.data[idx]
+    
+    def __len__(self):
+        """Number of elements in the dataset
+        
+        Returns:
+            len -- number of elements in the dataset
+        """
+        return self.len
 
 
 class SentenceGetter(object):
