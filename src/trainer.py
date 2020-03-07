@@ -113,7 +113,7 @@ class TrainModel():
             valid_tags = [self.idx2tag[l_ii] for l in true_labels for l_i in l for l_ii in l_i]
             print(f"F1-Score: {f1_score(pred_tags, valid_tags)}")
 
-            path_save_model = '../data/parameters/intermediate/test_model' \
+            path_save_model = 'data/parameters/intermediate/test_model' \
                                 + time.strftime("%Y%m%d_%H%M%S") \
                                 + '_epoch_' \
                                 +  str(curr_epoch) \
