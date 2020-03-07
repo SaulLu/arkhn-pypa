@@ -14,6 +14,9 @@ def main():
 
     val_size = args.val_size
     test_size = args.test_size
+
+    assert val_size + test_size <=1, 'The sum of the proportions of the valid and the test set cannot be greater than 1'
+
     n_epochs = args.n_epochs
     batch_size = args.batch_size
 
@@ -66,12 +69,12 @@ def __set_argparse():
         help="")
     parser.add_argument(
         "--val_size",
-        type=float,
+        type=float_between_0_and_1,
         default=0.2,
         help="")
     parser.add_argument(
         "--test_size",
-        type=float,
+        type=float_between_0_and_1,
         default=0.2,
         help="")
     parser.add_argument(
@@ -106,7 +109,18 @@ def __set_argparse():
         type=str,
         default='data/inputs/2009/dataframe_final_clean.csv',
         help="")
+
     return(parser)
+
+def float_between_0_and_1(x):
+    try:
+        x = float(x)
+    except ValueError:
+        raise argparse.ArgumentTypeError("%r not a floating-point literal" % (x,))
+
+    if x < 0.0 or x > 1.0:
+        raise argparse.ArgumentTypeError("%r not in range [0.0, 1.0]"%(x,))
+    return x
 
 def __dataloader(dataset, val_size, test_size, batch_size):
     dataset_size = len(dataset)
