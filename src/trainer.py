@@ -129,14 +129,14 @@ class TrainModel():
 
             curr_time = time.strftime("%Y%m%d_%H%M%S")
 
-            path_img = "/data/parameters/img/confusion_matrix_" \
+            path_img = "data/parameters/img/confusion_matrix_" \
                             + curr_time \
                             + '_epoch_' \
                             +  str(curr_epoch) \
                             + ".jpeg"
 
             conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
-            display_confusion_matrix(conf_matrix, labels_list, path_img)
+            display_confusion_matrix(conf_matrix, labels_list, path=path_img)
             print(labels_list)
             print(conf_matrix)
             
