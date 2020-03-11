@@ -121,11 +121,11 @@ class TrainModel():
             valid_tags = [self.idx2tag[l_ii] for l in true_labels for l_i in l for l_ii in l_i]
             print(f"F1-Score: {f1_score(pred_tags, valid_tags)}")
 
-            labels_list = self.tag2idx.keys()
+            labels_list = list(self.tag2idx.keys())
 
-            print(f"labels_list {labels_list}")
-            print(f"pred_tags {pred_tags}")
-            print(f"valid_tags {valid_tags}")
+            # print(f"labels_list {labels_list}")
+            # print(f"pred_tags {pred_tags}")
+            # print(f"valid_tags {valid_tags}")
 
             conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
             display_confusion_matrix(conf_matrix, labels_list)
