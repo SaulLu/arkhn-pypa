@@ -7,26 +7,26 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
     print(f"curr_epoch {curr_epoch}")
     print(f"curr_time {curr_time}")
 
-    if (curr_epoch is None) and curr_time:
+    if curr_epoch and curr_time:
         path_conf_mat = "data/parameters/img/" \
                                 + curr_time \
                                 + "_confusion_matrix" \
                                 + '_epoch_' \
-                                +  str(curr_epoch) \
+                                +  curr_epoch \
                                 + ".jpeg"
         
         path_conf_mat_pred = "data/parameters/img/" \
                                 + curr_time \
                                 + "_confusion_matrix_pred" \
                                 + '_epoch_' \
-                                +  str(curr_epoch) \
+                                +  curr_epoch \
                                 + ".jpeg"
         
         path_conf_mat_true = "data/parameters/img/" \
                                 + curr_time \
                                 + "_confusion_matrix_true" \
                                 + '_epoch_' \
-                                +  str(curr_epoch) \
+                                +  curr_epoch \
                                 + ".jpeg"
     
     df_conf_matrix = pd.DataFrame(conf_matrix, labels_list, labels_list)

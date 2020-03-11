@@ -134,8 +134,10 @@ class TrainModel():
 
             curr_time = time.strftime("%Y%m%d_%H%M%S")
 
+            curr_epoch_str = str(curr_epoch)
+
             conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
-            generate_confusion_matrix(conf_matrix, labels_list, curr_epoch=curr_epoch, curr_time=curr_time)
+            generate_confusion_matrix(conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time)
             print(f"Confusion matrix saved")
             
             if curr_epoch%10==0:
