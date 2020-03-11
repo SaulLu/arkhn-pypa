@@ -1,8 +1,8 @@
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, TensorDataset
-from keras.preprocessing.sequence import pad_sequences
 from pytorch_pretrained_bert import BertTokenizer
+import numpy as np
 
 
 class NerDataset(Dataset):
@@ -40,22 +40,19 @@ class NerDataset(Dataset):
             tokenizer.tokenize(sent)
             for sent in [" ".join([s[0] for s in sent]) for sent in getter.sentences]
         ]
-
+        print(tokenized_texts[0][0])
+        print(
+            type(
+                [tokenizer.convert_tokens_to_ids(txt) for txt in tokenized_texts][0][0]
+            )
+        )
         self.input_ids = pad_sequences(
             [tokenizer.convert_tokens_to_ids(txt) for txt in tokenized_texts],
             maxlen=max_len,
-            dtype="long",
-            truncating="post",
-            padding="post",
         )
-
+        print(type(self.input_ids[0][0]))
         self.tags = pad_sequences(
-            [[self.tag2idx.get(l) for l in lab] for lab in self.labels],
-            maxlen=max_len,
-            value=self.tag2idx["O"],
-            padding="post",
-            dtype="long",
-            truncating="post",
+            [[self.tag2idx.get(l) for l in lab] for lab in self.labels], maxlen=max_len
         )
 
         self.attention_masks = [[float(i > 0) for i in ii] for ii in self.input_ids]
@@ -68,7 +65,7 @@ class NerDataset(Dataset):
 
         self.data = TensorDataset(self.input_ids, self.attention_masks, self.tags)
 
-        self.len = len(self.labels) # to check
+        self.len = len(self.labels)  # to check
 
     def __getitem__(self, idx):
         """Get the item whose index is idx
@@ -80,7 +77,7 @@ class NerDataset(Dataset):
             {(torch.Tensor, torch.Tensor, torch.Tensor)} -- tuple of tensors corresponding to input_ids, attention_masks and tags
         """
         return self.data[idx]
-    
+
     def __len__(self):
         """Number of elements in the dataset
         
@@ -88,6 +85,16 @@ class NerDataset(Dataset):
             len -- number of elements in the dataset
         """
         return self.len
+
+    def pad_sequences(sequences, max_len, default=0.0):
+        output = []
+        for seq in sequences:
+            i = 0
+            while (i + 1) * max_len <= len(seq):
+                output.append(seq[i * max_len : (i + 1) * max_len])
+                i += 1
+            output.append((seq[i * max_len :] + max_len * [default])[:max_len])
+        return np.array(output)
 
 
 class SentenceGetter(object):
