@@ -53,9 +53,11 @@ class TrainModel():
 
             loss_sum = 0
             nb_tr_sentences, nb_tr_steps = 0, 0
+            j=0
 
             for batch in self.__train_loader:
-                
+                j +=1
+
                 input_ids, mask, tags = batch
                 input_ids = input_ids.to(self.device)
                 mask = mask.to(self.device)
@@ -77,6 +79,9 @@ class TrainModel():
 
                 self.__optimizer.step()
                 self.model.zero_grad()
+
+                if j==5:
+                    break
             # print train loss per epoch
             print("Train loss: {}".format(loss_sum/nb_tr_steps))
             
@@ -117,6 +122,11 @@ class TrainModel():
             print(f"F1-Score: {f1_score(pred_tags, valid_tags)}")
 
             labels_list = self.tag2idx.keys()
+
+            print(f"labels_list {labels_list}")
+            print(f"pred_tags {pred_tags}")
+            print(f"valid_tags {valid_tags}")
+
             conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
             display_confusion_matrix(conf_matrix, labels_list)
             
