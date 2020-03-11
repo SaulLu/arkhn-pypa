@@ -5,10 +5,14 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, TensorDataset
 <<<<<<< HEAD
+<<<<<<< HEAD
 from keras.preprocessing.sequence import pad_sequences
 =======
 
 >>>>>>> 06b18db... handle directories as datapath
+=======
+
+>>>>>>> 471ec49... handle directories as datapath
 from pytorch_pretrained_bert import BertTokenizer
 
 
