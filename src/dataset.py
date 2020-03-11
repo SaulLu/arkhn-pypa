@@ -40,19 +40,14 @@ class NerDataset(Dataset):
             tokenizer.tokenize(sent)
             for sent in [" ".join([s[0] for s in sent]) for sent in getter.sentences]
         ]
-        print(tokenized_texts[0][0])
-        print(
-            type(
-                [tokenizer.convert_tokens_to_ids(txt) for txt in tokenized_texts][0][0]
-            )
-        )
-        self.input_ids = pad_sequences(
+
+        self.input_ids = self.pad_sequences(
             [tokenizer.convert_tokens_to_ids(txt) for txt in tokenized_texts],
-            maxlen=max_len,
+            max_len=max_len,
         )
-        print(type(self.input_ids[0][0]))
-        self.tags = pad_sequences(
-            [[self.tag2idx.get(l) for l in lab] for lab in self.labels], maxlen=max_len
+
+        self.tags = self.pad_sequences(
+            [[self.tag2idx.get(l) for l in lab] for lab in self.labels], max_len=max_len
         )
 
         self.attention_masks = [[float(i > 0) for i in ii] for ii in self.input_ids]
@@ -86,7 +81,7 @@ class NerDataset(Dataset):
         """
         return self.len
 
-    def pad_sequences(sequences, max_len, default=0.0):
+    def pad_sequences(self, sequences, max_len, default=0.0):
         output = []
         for seq in sequences:
             i = 0
