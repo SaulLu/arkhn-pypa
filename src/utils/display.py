@@ -30,11 +30,11 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
     display_confusion_matrix(df_conf_matrix, path=path_conf_mat, title='Confusion Marix')
 
     df_conf_matrix_true = (df_conf_matrix.T / df_conf_matrix.T.sum()).T * 100
-    display_confusion_matrix(df_conf_matrix_true, path=path_conf_mat_true, \
+    display_confusion_matrix(df_conf_matrix_true, path=path_conf_mat_true, 
         title='Visualization of the distribution of predicted tags for a given real tag')
     
     df_conf_matrix_pred = df_conf_matrix / df_conf_matrix.sum() *100
-    display_confusion_matrix(df_conf_matrix_pred, path=path_conf_mat_pred, \
+    display_confusion_matrix(df_conf_matrix_pred, path=path_conf_mat_pred, 
         title='Visualization of the distribution of real tags for a given predicted tag')
 
 def display_confusion_matrix(df_conf_matrix, path=None, title=None):
