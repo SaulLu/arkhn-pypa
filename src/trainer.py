@@ -129,6 +129,7 @@ class TrainModel():
 
             conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
             display_confusion_matrix(conf_matrix, labels_list)
+            print(conf_matrix)
             
             if curr_epoch%10==0:
                 path_save_model = 'data/parameters/intermediate/test_model' \
