@@ -144,9 +144,9 @@ def map_output(words):
 
     return pd.DataFrame.from_dict(
         {
-            'Sentence': sent,
-            'Words': word,
-            'Tag': tag
+            'sentence': sent,
+            'word': word,
+            'tag': tag
         }
     )
 
