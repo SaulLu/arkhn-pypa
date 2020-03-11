@@ -6,6 +6,9 @@ from seqeval.metrics import f1_score
 from torch.optim import Adam
 from pytorch_pretrained_bert import BertForTokenClassification
 from tqdm import trange
+from sklearn.metrics import confusion_matrix
+
+from utils.display import display_confusion_matrix
 
 class TrainModel():
     def __init__(
@@ -113,17 +116,22 @@ class TrainModel():
             valid_tags = [self.idx2tag[l_ii] for l in true_labels for l_i in l for l_ii in l_i]
             print(f"F1-Score: {f1_score(pred_tags, valid_tags)}")
 
-            path_save_model = 'data/parameters/intermediate/test_model' \
-                                + time.strftime("%Y%m%d_%H%M%S") \
-                                + '_epoch_' \
-                                +  str(curr_epoch) \
-                                + '.pt'
-            torch.save({
-                    'epoch': curr_epoch,
-                    'model_state_dict': self.model.state_dict(),
-                    'optimizer_state_dict': self.__optimizer.state_dict(),
-                    'loss': loss
-                    }, path_save_model)
+            labels_list = self.tag2idx.keys()
+            conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
+            display_confusion_matrix(conf_matrix, labels_list)
+            
+            if curr_epoch%10==0:
+                path_save_model = 'data/parameters/intermediate/test_model' \
+                                    + time.strftime("%Y%m%d_%H%M%S") \
+                                    + '_epoch_' \
+                                    +  str(curr_epoch) \
+                                    + '.pt'
+                torch.save({
+                        'epoch': curr_epoch,
+                        'model_state_dict': self.model.state_dict(),
+                        'optimizer_state_dict': self.__optimizer.state_dict(),
+                        'loss': loss
+                        }, path_save_model)
             
     def __flat_accuracy(self, preds, labels):
         pred_flat = np.argmax(preds, axis=2).flatten()
