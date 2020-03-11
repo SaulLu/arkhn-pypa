@@ -8,7 +8,7 @@ from pytorch_pretrained_bert import BertForTokenClassification
 from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
-from src.utils.display import display_confusion_matrix
+from src.utils.display import generate_confusion_matrix
 
 class TrainModel():
     def __init__(
@@ -54,7 +54,10 @@ class TrainModel():
             loss_sum = 0
             nb_tr_sentences, nb_tr_steps = 0, 0
 
+            j=0
+
             for batch in self.__train_loader:
+                j+=1
 
                 input_ids, mask, tags = batch
                 input_ids = input_ids.to(self.device)
@@ -78,6 +81,9 @@ class TrainModel():
                 self.__optimizer.step()
                 self.model.zero_grad()
 
+                if j==5:
+                    break
+
             # print train loss per epoch
             print("Train loss: {}".format(loss_sum/nb_tr_steps))
             
@@ -87,7 +93,11 @@ class TrainModel():
             eval_loss, eval_accuracy = 0, 0
             nb_eval_steps, nb_eval_sentences = 0, 0
             predictions , true_labels = [], []
+
+            k=0
             for batch in self.__val_loader:
+                k+=1
+
                 batch = tuple(t.to(self.device) for t in batch)
                 input_ids, mask, tags = batch
                 
@@ -108,6 +118,9 @@ class TrainModel():
                 
                 nb_eval_sentences += input_ids.size(0)
                 nb_eval_steps += 1
+
+                if k==5:
+                    break
             
             eval_loss = eval_loss/nb_eval_steps
             print(f"Validation loss: {eval_loss}")
@@ -121,15 +134,9 @@ class TrainModel():
 
             curr_time = time.strftime("%Y%m%d_%H%M%S")
 
-            path_img = "data/parameters/img/confusion_matrix_" \
-                            + curr_time \
-                            + '_epoch_' \
-                            +  str(curr_epoch) \
-                            + ".jpeg"
-
             conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
-            display_confusion_matrix(conf_matrix, labels_list, path=path_img)
-            print(f"Confusion matrix saved at {path_img}")
+            generate_confusion_matrix(conf_matrix, labels_list, curr_epoch=curr_epoch, curr_time=curr_time)
+            print(f"Confusion matrix saved")
             
             if curr_epoch%10==0:
                 path_save_model = 'data/parameters/intermediate/test_model' \
