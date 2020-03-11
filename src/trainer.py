@@ -119,10 +119,6 @@ class TrainModel():
 
             labels_list = list(self.tag2idx.keys())
 
-            # print(f"labels_list {labels_list}")
-            # print(f"pred_tags {pred_tags}")
-            # print(f"valid_tags {valid_tags}")
-
             curr_time = time.strftime("%Y%m%d_%H%M%S")
 
             path_img = "data/parameters/img/confusion_matrix_" \
