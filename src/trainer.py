@@ -8,7 +8,7 @@ from pytorch_pretrained_bert import BertForTokenClassification
 from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
-from utils.display import display_confusion_matrix
+from src.utils.display import display_confusion_matrix
 
 class TrainModel():
     def __init__(
