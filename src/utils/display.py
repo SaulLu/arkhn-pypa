@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epoch=None):
     path_conf_mat = None
-    if curr_epoch and curr_epoch:
+    if curr_epoch and curr_time:
         path_conf_mat = "data/parameters/img/" \
                                 + curr_time \
                                 + "_confusion_matrix" \
