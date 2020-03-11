@@ -1,0 +1,19 @@
+#!/bin/bash
+# Configure environment for pypa
+
+# Setup conda env - ensure your .conda dir is located on your workir, and move it if not
+[ -L ~/.conda ] && unlink ~/.conda
+[ -d ~/.conda ] && mv -v ~/.conda $WORKDIR
+[ ! -d $WORKDIR/.conda ] && mkdir $WORKDIR/.conda
+ln -s $WORKDIR/.conda ~/.conda
+
+# Create conda environment
+module load anaconda3/5.3.1
+conda create -n pypa_env python=3.7.6
+source activate pypa_env
+
+# Install transformers
+conda install -c anaconda pip
+pip install .
+pip install -r ./requirements.txt
+
