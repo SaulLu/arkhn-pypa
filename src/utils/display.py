@@ -3,11 +3,11 @@ import seaborn as sn
 import matplotlib.pyplot as plt
 
 def display_confusion_matrix(conf_matrix, labels_list, path=None):
-    f, ax = plt.subplots()
+    _, __ = plt.subplots()
     df_conf_matrix = pd.DataFrame(conf_matrix, labels_list, labels_list)
     sn.set(font_scale=0.8)
     sn.heatmap(df_conf_matrix, annot=True, fmt='d')
-    plt.ylabel('True Tag')
+    plt.ylabel('True Tag', va='center')
     plt.xlabel('Predicted Tag')
     if path:
         try:
