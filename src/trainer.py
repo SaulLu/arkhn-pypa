@@ -127,13 +127,22 @@ class TrainModel():
             # print(f"pred_tags {pred_tags}")
             # print(f"valid_tags {valid_tags}")
 
+            curr_time = time.strftime("%Y%m%d_%H%M%S")
+
+            path_img = "/data/parameters/img/confusion_matrix_" \
+                            + curr_time \
+                            + '_epoch_' \
+                            +  str(curr_epoch) \
+                            + ".jpeg"
+
             conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
-            display_confusion_matrix(conf_matrix, labels_list)
+            display_confusion_matrix(conf_matrix, labels_list, path_img)
+            print(labels_list)
             print(conf_matrix)
             
             if curr_epoch%10==0:
                 path_save_model = 'data/parameters/intermediate/test_model' \
-                                    + time.strftime("%Y%m%d_%H%M%S") \
+                                    + curr_time \
                                     + '_epoch_' \
                                     +  str(curr_epoch) \
                                     + '.pt'
