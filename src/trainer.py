@@ -54,10 +54,7 @@ class TrainModel():
             loss_sum = 0
             nb_tr_sentences, nb_tr_steps = 0, 0
 
-            j=0
-
             for batch in self.__train_loader:
-                j+=1
 
                 input_ids, mask, tags = batch
                 input_ids = input_ids.to(self.device)
@@ -81,9 +78,6 @@ class TrainModel():
                 self.__optimizer.step()
                 self.model.zero_grad()
 
-                if j==5:
-                    break
-
             # print train loss per epoch
             print("Train loss: {}".format(loss_sum/nb_tr_steps))
             
@@ -94,9 +88,7 @@ class TrainModel():
             nb_eval_steps, nb_eval_sentences = 0, 0
             predictions , true_labels = [], []
 
-            k=0
             for batch in self.__val_loader:
-                k+=1
 
                 batch = tuple(t.to(self.device) for t in batch)
                 input_ids, mask, tags = batch
@@ -118,9 +110,6 @@ class TrainModel():
                 
                 nb_eval_sentences += input_ids.size(0)
                 nb_eval_steps += 1
-
-                if k==5:
-                    break
             
             eval_loss = eval_loss/nb_eval_steps
             print(f"Validation loss: {eval_loss}")
