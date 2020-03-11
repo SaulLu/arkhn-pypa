@@ -53,10 +53,8 @@ class TrainModel():
 
             loss_sum = 0
             nb_tr_sentences, nb_tr_steps = 0, 0
-            j=0
 
             for batch in self.__train_loader:
-                j +=1
 
                 input_ids, mask, tags = batch
                 input_ids = input_ids.to(self.device)
@@ -80,8 +78,6 @@ class TrainModel():
                 self.__optimizer.step()
                 self.model.zero_grad()
 
-                if j==5:
-                    break
             # print train loss per epoch
             print("Train loss: {}".format(loss_sum/nb_tr_steps))
             
@@ -137,8 +133,7 @@ class TrainModel():
 
             conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
             display_confusion_matrix(conf_matrix, labels_list, path=path_img)
-            print(labels_list)
-            print(conf_matrix)
+            print(f"Confusion matrix saved at {path_img}")
             
             if curr_epoch%10==0:
                 path_save_model = 'data/parameters/intermediate/test_model' \
