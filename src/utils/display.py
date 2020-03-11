@@ -43,7 +43,7 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
 def display_confusion_matrix(df_conf_matrix, path=None, title=None):
     _, __ = plt.subplots()
     sn.set(font_scale=0.8)
-    sn.heatmap(df_conf_matrix, annot=True, fmt='d')
+    sn.heatmap(df_conf_matrix, annot=True, fmt='g')
     plt.ylabel('True Tag', va='center')
     plt.xlabel('Predicted Tag')
     plt.title(title)
