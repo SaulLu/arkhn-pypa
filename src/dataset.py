@@ -43,7 +43,7 @@ class NerDataset(Dataset):
 
         self.input_ids = self.pad_sequences(
             [tokenizer.convert_tokens_to_ids(txt) for txt in tokenized_texts],
-            max_len=max_len,
+            max_len=max_len
         )
 
         self.tags = self.pad_sequences(
