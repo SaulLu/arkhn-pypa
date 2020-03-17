@@ -57,3 +57,4 @@ def display_confusion_matrix(df_conf_matrix, path=None, title=None):
             print("Error building image!: " + path)
             raise
     plt.show()
+    plt.close()
