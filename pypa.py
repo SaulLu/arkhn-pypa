@@ -41,6 +41,7 @@ def main():
     if mode == 'train':
         if continue_last_train:
             path_previous_model = get_path_last_model()
+            print(f"path_previous_model loaded : {path_previous_model}")
 
         trainer = TrainModel(
             train_loader=train_loader, 
