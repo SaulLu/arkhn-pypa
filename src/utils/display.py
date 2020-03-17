@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 
 def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epoch=None):
     path_conf_mat = None
-    print(f"curr_epoch {curr_epoch}")
-    print(f"curr_time {curr_time}")
 
     if curr_epoch and curr_time:
         path_conf_mat = "data/parameters/img/" \
@@ -57,4 +55,5 @@ def display_confusion_matrix(df_conf_matrix, path=None, title=None):
                 pad_inches=0.5)
         except Exception:
             print("Error building image!: " + path)
+            raise
     plt.show()
