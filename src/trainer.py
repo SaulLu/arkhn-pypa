@@ -12,7 +12,9 @@ from src.utils.display import generate_confusion_matrix
 
 class TrainModel():
     def __init__(
-        self, train_loader, val_loader, tag2idx, idx2tag, pretrained_model='bert-base-uncased', batch_size=100, path_previous_model=None, full_finetuning=True
+        self, train_loader, val_loader, tag2idx, idx2tag, 
+        pretrained_model='bert-base-uncased', batch_size=100, path_previous_model=None, 
+        full_finetuning=True
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -29,6 +31,16 @@ class TrainModel():
         self.model = BertForTokenClassification.from_pretrained(self.pretrained_model, num_labels=len(tag2idx)).to(self.device) ####
 
         self.__optimizer = self.__set_optimizer()
+        self.__start_epoch = 0
+
+        if path_previous_model:
+            self.__resume_training(path_previous_model)
+    
+    def __resume_training(self, path_model):
+        checkpoint = torch.load(path_model)
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.__optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.__start_epoch = checkpoint['epoch']
             
     def __set_optimizer(self):
         if self.full_finetuning:
@@ -47,7 +59,7 @@ class TrainModel():
         return(Adam(optimizer_grouped_parameters, lr=3e-5))
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
-        for curr_epoch in trange(n_epochs, desc="Epoch"):
+        for curr_epoch in trange(range(self.__start_epoch, n_epochs), desc="Epoch"):
             
             self.model.train()
 
@@ -130,17 +142,20 @@ class TrainModel():
             print(f"Confusion matrix saved")
             
             if curr_epoch%10==0:
-                path_save_model = 'data/parameters/intermediate/test_model' \
+                path_save_model = 'data/parameters/intermediate/' \
                                     + curr_time \
+                                    + 'test_model' \
                                     + '_epoch_' \
                                     +  str(curr_epoch) \
                                     + '.pt'
                 torch.save({
                         'epoch': curr_epoch,
+                        # 'loss': loss,
                         'model_state_dict': self.model.state_dict(),
-                        'optimizer_state_dict': self.__optimizer.state_dict(),
-                        'loss': loss
+                        'optimizer_state_dict': self.__optimizer.state_dict()
                         }, path_save_model)
+
+        self.__start_epoch = self.__start_epoch + n_epochs
             
     def __flat_accuracy(self, preds, labels):
         pred_flat = np.argmax(preds, axis=2).flatten()
