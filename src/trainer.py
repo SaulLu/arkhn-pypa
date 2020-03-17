@@ -59,8 +59,8 @@ class TrainModel():
         return(Adam(optimizer_grouped_parameters, lr=3e-5))
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
-        for curr_epoch in tqdm(range(self.__start_epoch, n_epochs), desc="Epoch"):
-            
+        for curr_epoch in trange(n_epochs, desc="Epoch"):
+            curr_epoch = self.__start_epoch + curr_epoch
             self.model.train()
 
             loss_sum = 0
@@ -137,7 +137,7 @@ class TrainModel():
             if curr_epoch%10==0:
                 path_save_model = 'data/parameters/intermediate/' \
                                     + curr_time \
-                                    + 'test_model' \
+                                    + '_test_model' \
                                     + '_epoch_' \
                                     +  str(curr_epoch) \
                                     + '.pt'
