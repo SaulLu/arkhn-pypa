@@ -11,21 +11,21 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
                                 + "_confusion_matrix" \
                                 + '_epoch_' \
                                 +  curr_epoch \
-                                + ".jpeg"
+                                + ".png"
         
         path_conf_mat_pred = "data/parameters/img/" \
                                 + curr_time \
                                 + "_confusion_matrix_pred" \
                                 + '_epoch_' \
                                 +  curr_epoch \
-                                + ".jpeg"
+                                + ".png"
         
         path_conf_mat_true = "data/parameters/img/" \
                                 + curr_time \
                                 + "_confusion_matrix_true" \
                                 + '_epoch_' \
                                 +  curr_epoch \
-                                + ".jpeg"
+                                + ".png"
     
     df_conf_matrix = pd.DataFrame(conf_matrix, labels_list, labels_list)
     display_confusion_matrix(df_conf_matrix, path=path_conf_mat, title='Confusion Marix')
