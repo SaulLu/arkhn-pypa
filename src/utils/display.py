@@ -35,12 +35,12 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
     df_conf_matrix_true = (df_conf_matrix.T / df_conf_matrix.T.sum()).T * 100
     df_conf_matrix_true = df_conf_matrix_true.round(0)
     display_confusion_matrix(df_conf_matrix_true, path=path_conf_mat_true, 
-        title='Visualization of the distribution of predicted tags for a given real tag')
+        title='Recall Matrix (%)')
     
     df_conf_matrix_pred = df_conf_matrix / df_conf_matrix.sum() *100
     df_conf_matrix_pred = df_conf_matrix_pred.round(0)
     display_confusion_matrix(df_conf_matrix_pred, path=path_conf_mat_pred, 
-        title='Visualization of the distribution of real tags for a given predicted tag')
+        title='Precision Matrix (%)')
 
 def display_confusion_matrix(df_conf_matrix, path=None, title=None):
     _, __ = plt.subplots()
