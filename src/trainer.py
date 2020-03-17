@@ -73,27 +73,20 @@ class TrainModel():
                 mask = mask.to(self.device)
                 tags = tags.to(self.device)
 
-                # forward pass
                 loss = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
-                # backward pass
                 loss.backward()
 
-                # track train loss
                 loss_sum += loss.item()
                 nb_tr_sentences += input_ids.size(0)
                 nb_tr_steps += 1
 
-                # gradient clipping
                 torch.nn.utils.clip_grad_norm_(parameters=self.model.parameters(), max_norm=max_grad_norm)
-                # update parameters
 
                 self.__optimizer.step()
                 self.model.zero_grad()
 
-            # print train loss per epoch
             print("Train loss: {}".format(loss_sum/nb_tr_steps))
             
-            # VALIDATION on validation set
             self.model.eval()
 
             eval_loss, eval_accuracy = 0, 0
@@ -150,7 +143,8 @@ class TrainModel():
                                     + '.pt'
                 torch.save({
                         'epoch': curr_epoch,
-                        # 'loss': loss,
+                        'train_loss': loss_sum/nb_tr_steps,
+                        'val_loss': eval_loss,
                         'model_state_dict': self.model.state_dict(),
                         'optimizer_state_dict': self.__optimizer.state_dict()
                         }, path_save_model)
