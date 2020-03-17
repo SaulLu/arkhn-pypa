@@ -5,7 +5,7 @@ import torch
 from seqeval.metrics import f1_score
 from torch.optim import Adam
 from pytorch_pretrained_bert import BertForTokenClassification
-from tqdm import trange
+from tqdm import tqdm
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
@@ -59,7 +59,7 @@ class TrainModel():
         return(Adam(optimizer_grouped_parameters, lr=3e-5))
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
-        for curr_epoch in trange(range(self.__start_epoch, n_epochs), desc="Epoch"):
+        for curr_epoch in tqdm(range(self.__start_epoch, n_epochs), desc="Epoch"):
             
             self.model.train()
 
