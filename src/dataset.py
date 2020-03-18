@@ -135,6 +135,8 @@ class SentenceGetter(object):
             self.data = pd.read_csv(
                 data_path, encoding=encoding).fillna(method="ffill")
         self.empty = False
+        print('DDDDDFFFFFFFFF1', self.data.head(5))
+        print('DDDDDFFFFFFFFF2', self.data.tail(5))
 
         def agg_func(s): return [
             (w, t) for w, t in zip(s["word"].values.tolist(), s["tag"].values.tolist())
