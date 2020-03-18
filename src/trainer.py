@@ -4,7 +4,7 @@ import time
 import torch
 from seqeval.metrics import f1_score
 from torch.optim import Adam
-from transformers import BertForTokenClassification
+from transformers import AutoModelForTokenClassification
 from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
@@ -28,7 +28,7 @@ class TrainModel():
         self.__train_loader = train_loader
         self.__val_loader = val_loader
 
-        self.model = BertForTokenClassification.from_pretrained(self.pretrained_model, num_labels=len(tag2idx)).to(self.device) ####
+        self.model = AutoModelForTokenClassification.from_pretrained(self.pretrained_model, num_labels=len(tag2idx)).to(self.device) ####
 
         self.__optimizer = self.__set_optimizer()
         self.__start_epoch = 0
