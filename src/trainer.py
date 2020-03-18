@@ -73,7 +73,10 @@ class TrainModel():
                 mask = mask.to(self.device)
                 tags = tags.to(self.device)
 
-                loss = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
+                outputs = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
+                loss = outputs[0]
+                print(f"outputs: {outputs.size}")
+                print(f"loss: {loss.size}")
                 loss.backward()
 
                 loss_sum += loss.item()
