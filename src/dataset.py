@@ -106,6 +106,7 @@ class SentenceGetter(object):
         if os.path.isdir(data_path):
             frames = []
             for name in os.listdir(data_path):
+                print(name)
                 frames.append(
                     pd.read_csv(os.path.join(data_path, name),
                                 encoding=encoding).fillna(method="ffill")
