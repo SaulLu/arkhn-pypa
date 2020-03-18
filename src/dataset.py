@@ -13,7 +13,7 @@ class NerDataset(Dataset):
     def __init__(
         self,
         data_path,
-        encoding="utf8",
+        encoding="utf-8",
         max_len=75,
         pretrained_model="bert-base-uncased",
     ):
@@ -21,7 +21,7 @@ class NerDataset(Dataset):
         
         Attributes:
             data_path {str} -- Path to data file (.csv)
-            encoding {str} -- Data enconding. Defaults to 'latin1'.
+            encoding {str} -- Data enconding. Defaults to 'utf-8'.
             max_len {int} -- Maximal length for the sequences. Defaults to 75.
         """
 
@@ -95,7 +95,7 @@ class SentenceGetter(object):
     Data extractor from .csv file
     """
 
-    def __init__(self, data_path, encoding="utf8"):
+    def __init__(self, data_path, encoding="utf-8"):
         """SentenceGetter constructor
         
         Attributes:
@@ -108,7 +108,7 @@ class SentenceGetter(object):
             for name in os.listdir(data_path):
                 frames.append(
                     pd.read_csv(os.path.join(data_path, name),
-                                encoding=encoding).fillna(method="ffill")
+                                encoding=encoding, engine='c').fillna(method="ffill")
                 )
             self.data = pd.concat(frames)
         else:

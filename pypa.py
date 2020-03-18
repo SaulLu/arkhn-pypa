@@ -37,7 +37,7 @@ def main():
 
     dataset = NerDataset(
         data_path=data_path,
-        encoding="latin1",
+        encoding="utf-8",
         max_len=75,
         pretrained_model=pretrained_model
         )
