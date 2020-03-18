@@ -113,12 +113,12 @@ class SentenceGetter(object):
     Data extractor from .csv file
     """
 
-    def __init__(self, data_path, encoding="latin1"):
+    def __init__(self, data_path, encoding="utf8"):
         """SentenceGetter constructor
 
         Attributes:
             data_path {str} -- Path to data file (.csv)
-            encoding {str} -- Data enconding. Defaults to 'latin1'
+            encoding {str} -- Data enconding. Defaults to 'utf8'
         """
         self.n_sent = 1
 
