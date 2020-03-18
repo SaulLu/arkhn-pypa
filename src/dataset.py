@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, TensorDataset
-
 from pytorch_pretrained_bert import BertTokenizer
 
 
