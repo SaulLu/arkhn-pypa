@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
 from transformers import BertTokenizer
-
+import os
 
 class NerDataset(Dataset):
     """
@@ -103,6 +103,17 @@ class SentenceGetter(object):
             encoding {str} -- Data enconding. Defaults to 'latin1'
         """
         self.n_sent = 1
+        if os.path.isdir(data_path):
+            frames = []
+            for name in os.listdir(data_path):
+                frames.append(
+                    pd.read_csv(os.path.join(data_path, name),
+                                encoding=encoding).fillna(method="ffill")
+                )
+            self.data = pd.concat(frames)
+        else:
+            self.data = pd.read_csv(
+                data_path, encoding=encoding).fillna(method="ffill")
         self.data = pd.read_csv(data_path, encoding=encoding).fillna(method="ffill")
         self.empty = False
         agg_func = lambda s: [
