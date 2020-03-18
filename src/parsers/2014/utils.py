@@ -154,4 +154,4 @@ def map_output(words):
 
 def save_to_csv(path, filename, df):
     p = os.path.join(path, filename)
-    df.to_csv(p)
+    df.to_csv(p, encoding='latin1')
