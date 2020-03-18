@@ -31,11 +31,8 @@ class NerDataset(Dataset):
 
         getter = SentenceGetter(data_path, encoding)
 
-        self.labels = [[s[1] for s in sent] for sent in getter.sentences]
-        self.tag_vals = list(
-            set([l for labels in self.labels for l in labels]))
-        self.tag2idx = {t: i for i, t in enumerate(self.tag_vals)}
-        self.idx2tag = {v: k for k, v in self.tag2idx.items()}
+        #self.labels = [[s[1] for s in sent] for sent in getter.sentences]
+
 
         tokenizer = BertTokenizer.from_pretrained(
             pretrained_model, do_lower_case=True)
@@ -44,6 +41,11 @@ class NerDataset(Dataset):
             tokenizer.tokenize(sent)
             for sent in [" ".join([s[0] for s in sent]) for sent in getter.sentences]
         ]
+        self.labels = [self.map_labels(sent, token) for (sent, token) in zip(getter.sentences, tokenized_texts)]
+        self.tag_vals = list(
+            set([l for labels in self.labels for l in labels]))
+        self.tag2idx = {t: i for i, t in enumerate(self.tag_vals)}
+        self.idx2tag = {v: k for k, v in self.tag2idx.items()}
 
         self.input_ids = self.pad_sequences(
             [tokenizer.convert_tokens_to_ids(txt) for txt in tokenized_texts],
@@ -53,7 +55,7 @@ class NerDataset(Dataset):
         self.tags = self.pad_sequences(
             [[self.tag2idx.get(l) for l in lab] for lab in self.labels], max_len=max_len
         )
-
+        print('SHAAAAAAAAPE', self.input_ids.shape, self.tags.shape)
         self.attention_masks = [[float(i > 0) for i in ii]
                                 for ii in self.input_ids]
 
@@ -78,6 +80,39 @@ class NerDataset(Dataset):
             {(torch.Tensor, torch.Tensor, torch.Tensor)} -- tuple of tensors corresponding to input_ids, attention_masks and tags
         """
         return self.data[idx]
+
+    def map_labels(self, initial_sent, tokens):
+        new_labs = []
+        ind = 0
+        for index, i in enumerate(tokens):
+            if ind >= len(initial_sent):
+                new_labs.append('X')
+            elif '##' in i:
+                # print(1)
+                new_labs.append('X')
+
+                try:
+                    if ind < len(initial_sent) and i[-1] == \
+                            initial_sent[ind][0][-1].lower() and index < len(tokens) - 1 \
+                            and not '##' in tokens[index + 1]:  # fin du mot
+                        # print(i[-1],initial_sent[ind][0][-1])
+                        ind += 1
+                except Exception as e:
+                    print(ind, len(initial_sent))
+                    print('error', initial_sent[ind][0], i)
+                    assert False
+
+            elif i in initial_sent[ind][0].lower():
+                # print(2)
+                new_labs.append(initial_sent[ind][1])
+                if ind < len(initial_sent) and i[-1] == initial_sent[ind][0][-1].lower() \
+                        and index < len(tokens) - 1 and not '##' in tokens[index + 1]:  # fin du mot
+                    ind += 1
+            else:
+                # print(3)
+                new_labs.append('X')
+            # print(i, initial_sent[ind][0], new_labs[-1],  ind)
+        return new_labs
 
     def __len__(self):
         """Number of elements in the dataset
