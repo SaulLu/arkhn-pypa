@@ -107,6 +107,19 @@ class NerDataset(Dataset):
 <<<<<<< HEAD
 =======
     def pad_sequences(self, sequences, max_len, default=0.0):
+<<<<<<< HEAD
+=======
+        """Converts a list of lists of tokens of undefined length into a np.array of np.array of tokens whose size is max_len, padded with default value if needed.
+
+        Attributes:
+            sequence {list(list(int))} -- input sequences : tokenized sentences
+            max_len {int} -- length of the subarrays of the output array
+            default {float} -- default value used for padding. Defaults to 0.0
+
+        Returns:
+            {np.array(np.array(np.int))} -- np.array of np.array of tokens whose size is max_len
+        """
+>>>>>>> a486fb1... Try a fix
         output = []
         for seq in sequences:
             i = 0
