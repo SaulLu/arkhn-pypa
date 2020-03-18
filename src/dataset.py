@@ -11,7 +11,7 @@ class NerDataset(Dataset):
     """
 
     def __init__(
-        self,AutoTokenizer
+        self,
         data_path,
         encoding="latin1",
         max_len=75,
