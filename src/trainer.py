@@ -4,7 +4,7 @@ import time
 import torch
 from seqeval.metrics import f1_score
 from torch.optim import Adam
-from pytorch_pretrained_bert import BertForTokenClassification
+from transformers import BertForTokenClassification
 from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
