@@ -1,8 +1,16 @@
 # python 3.7.6
 
+<<<<<<< HEAD
+pandas==0.25.1
+tqdm==4.36.1
+numpy==1.17.2
+pytorch_pretrained_bert==0.6.2
+seqeval==0.0.12
+=======
 seqeval==0.0.12
 seaborn==0.9.0
 Keras==2.3.1
+>>>>>>> 99f0f78b7597175725127de9d70cb4ed57afea1c
 torch==1.4.0
 pytorch_pretrained_bert==0.6.2
 matplotlib==3.1.0
