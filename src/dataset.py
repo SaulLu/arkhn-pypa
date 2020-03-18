@@ -13,7 +13,7 @@ class NerDataset(Dataset):
     def __init__(
         self,
         data_path,
-        encoding="latin1",
+        encoding="utf8",
         max_len=75,
         pretrained_model="bert-base-uncased",
     ):
