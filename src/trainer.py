@@ -102,7 +102,6 @@ class TrainModel():
                 with torch.no_grad():
                     outputs = self.model(input_ids, token_type_ids=None,
                                         attention_mask=mask, labels=tags)
-                print(f"outputs: {len(outputs)}")
                 tmp_eval_loss, logits = outputs[:2]
                 logits = logits.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
