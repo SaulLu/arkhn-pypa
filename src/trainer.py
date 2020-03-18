@@ -35,6 +35,8 @@ class TrainModel():
 
         if path_previous_model:
             self.__resume_training(path_previous_model)
+        
+        self.loss_values = []
     
     def __resume_training(self, path_model):
         checkpoint = torch.load(path_model)
@@ -148,6 +150,8 @@ class TrainModel():
                         'model_state_dict': self.model.state_dict(),
                         'optimizer_state_dict': self.__optimizer.state_dict()
                         }, path_save_model)
+
+            self.loss_values.append([curr_epoch, loss_sum / nb_tr_steps, eval_loss])
 
         self.__start_epoch = self.__start_epoch + n_epochs
             
