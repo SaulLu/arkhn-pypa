@@ -33,7 +33,7 @@ def main():
         data_path=data_path,
         encoding="latin1",
         max_len=75,
-        pretrained_model="bert-base-uncased"
+        pretrained_model=pretrained_model
         )
     
     train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
