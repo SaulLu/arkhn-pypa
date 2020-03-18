@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, TensorDataset
 from pytorch_pretrained_bert import BertTokenizer
-
+import os
 
 class NerDataset(Dataset):
     """
@@ -127,9 +127,10 @@ class SentenceGetter(object):
             for name in os.listdir(data_path):
                 frames.append(
                     pd.read_csv(os.path.join(data_path, name),
-                                encoding=encoding)
+                                encoding=encoding).fillna(method="ffill")
+
                 )
-            self.data = pd.concat(frames).fillna(method="ffill")
+            self.data = pd.concat(frames)
         else:
             self.data = pd.read_csv(
                 data_path, encoding=encoding).fillna(method="ffill")
