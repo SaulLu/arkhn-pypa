@@ -8,6 +8,12 @@ from src.dataset import NerDataset
 from src.trainer import TrainModel
 from src.utils.loader import get_path_last_model
 
+MODEL_TYPE:{
+    'bert':{
+        'base':'bert-base-cased',
+        'biobert': 'monologg/biobert_v1.1_pubmed'
+    }
+}
 
 def main():
     parser = __set_argparse()
@@ -91,7 +97,7 @@ def __set_argparse():
     parser.add_argument(
         "--pretrained_model",
         type=str,
-        default='bert-base-uncased',
+        default='bert-base-cased',
         help="")
     parser.add_argument(
         "--batch_size",
