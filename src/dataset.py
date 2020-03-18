@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
-from pytorch_pretrained_bert import BertTokenizer
+from transformers import BertTokenizer
 
 
 class NerDataset(Dataset):

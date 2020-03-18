@@ -5,7 +5,7 @@ import csv
 import torch
 from seqeval.metrics import f1_score
 from torch.optim import Adam
-from pytorch_pretrained_bert import BertForTokenClassification
+from transformers import BertForTokenClassification
 from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
@@ -76,7 +76,8 @@ class TrainModel():
                 mask = mask.to(self.device)
                 tags = tags.to(self.device)
 
-                loss = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
+                outputs = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
+                loss = outputs[0]
                 loss.backward()
 
                 loss_sum += loss.item()
@@ -102,10 +103,9 @@ class TrainModel():
                 input_ids, mask, tags = batch
                 
                 with torch.no_grad():
-                    tmp_eval_loss = self.model(input_ids, token_type_ids=None,
+                    outputs = self.model(input_ids, token_type_ids=None,
                                         attention_mask=mask, labels=tags)
-                    logits = self.model(input_ids, token_type_ids=None,
-                                attention_mask=mask)
+                tmp_eval_loss, logits = outputs[:2]
                 logits = logits.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
                 predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
