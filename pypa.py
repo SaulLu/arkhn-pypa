@@ -6,6 +6,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 from src.dataset import NerDataset
 from src.trainer import TrainModel
+from src.utils.loader import get_path_last_model
 
 
 def main():
@@ -24,6 +25,7 @@ def main():
     pretrained_model = args.pretrained_model
     path_previous_model = args.path_previous_model
     full_finetuning = args.full_finetuning
+    continue_last_train = args.continue_last_train
 
     mode = args.mode
 
@@ -37,6 +39,10 @@ def main():
     train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
 
     if mode == 'train':
+        if continue_last_train:
+            path_previous_model = get_path_last_model()
+            print(f"path_previous_model loaded : {path_previous_model}")
+
         trainer = TrainModel(
             train_loader=train_loader, 
             val_loader=val_loader, 
@@ -109,6 +115,12 @@ def __set_argparse():
         type=str,
         default='data/inputs/2009/dataframe_final_clean.csv',
         help="")
+    parser.add_argument(
+        "--continue_last_train",
+        type=bool,
+        default=False,
+        help="")
+    
 
     return(parser)
 
