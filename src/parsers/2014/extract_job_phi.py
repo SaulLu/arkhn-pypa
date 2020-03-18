@@ -13,10 +13,10 @@ if __name__ == '__main__':
     if not os.path.isdir(path):
         raise Exception('Invalid path : ', path)
     print('path', path)
-    for filename in os.listdir(path):
+    for idx, filename in enumerate(os.listdir(path)):
         tags, text = utils.extract_tags_phi(os.path.join(path, filename))
 
-        words = utils.extract_words(text, tags)
+        words = utils.extract_words(text, tags, idx)
 
         df = utils.map_output(words)
         name = filename.split('.')[0]

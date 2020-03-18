@@ -11,13 +11,14 @@ def clean_word(word):
     return w.lstrip(s)
 
 
-def extract_words(text, tags):
+def extract_words(text, tags, text_idx):
     tag = 'O'
     body = {
         'start': 0,
         'end': 0
     }
-    current_sent = 0
+    # we need to have unique sentences id, hypothesis is that there is less than 1000 sentences per text
+    current_sent = 1000 * text_idx
     if tags:
         tag, body = tags.pop(0)
     words = []
