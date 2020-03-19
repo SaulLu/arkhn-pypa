@@ -12,6 +12,9 @@ MODEL_TYPE:{
     'bert':{
         'base':'bert-base-cased',
         'biobert': 'monologg/biobert_v1.1_pubmed'
+    },
+    'camembert':{
+        'base':'camembert-base'
     }
 }
 

@@ -29,12 +29,8 @@ class TrainModel():
         self.__val_loader = val_loader
 
         config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
-        # config['num_labels'] = len(tag2idx)
-        print(f"config: {config}")
-        print(f"unused_kwargs: {unused_kwargs}")
-        # , **{'num_labels':len(tag2idx)}
-        self.model = AutoModelForTokenClassification.from_config(config).to(self.device) ####
-        print(f"model: {self.model}")
+        assert unused_kwargs == {}
+        self.model = AutoModelForTokenClassification.from_config(config).to(self.device)
         self.__optimizer = self.__set_optimizer()
         self.__start_epoch = 0
 
