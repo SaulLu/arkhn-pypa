@@ -28,7 +28,7 @@ class TrainModel():
         self.__train_loader = train_loader
         self.__val_loader = val_loader
 
-        self.model = AutoModelForTokenClassification.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, **{num_labels=len(tag2idx)}).to(self.device) ####
+        self.model = AutoModelForTokenClassification.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, **{'num_labels':len(tag2idx)}).to(self.device) ####
 
         self.__optimizer = self.__set_optimizer()
         self.__start_epoch = 0
