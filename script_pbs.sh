@@ -15,4 +15,4 @@ module load anaconda3/5.3.1
 source activate pypa_env
 
 # Run code
-python ./pypa.py --n_epochs 51 --pretrained_model 'monologg/biobert_v1.1_pubmed'
+python ./pypa.py --n_epochs 51 --continue_last_train True
