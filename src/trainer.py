@@ -1,5 +1,7 @@
 import numpy as np
 import time
+import csv
+from path import Path
 
 import torch
 from seqeval.metrics import f1_score
@@ -35,6 +37,8 @@ class TrainModel():
 
         if path_previous_model:
             self.__resume_training(path_previous_model)
+        
+        self.metrics = [['epoch', 'train_loss', 'val_loss', 'train_accuracy', 'val_accuracy', 'f1']]
     
     def __resume_training(self, path_model):
         checkpoint = torch.load(path_model)
@@ -58,7 +62,10 @@ class TrainModel():
 
         return(Adam(optimizer_grouped_parameters, lr=3e-5))
 
-    def train(self, n_epochs=20, max_grad_norm=1.0):
+    def train(self, n_epochs=20, max_grad_norm=1.0, path='data/results/'):
+        with open("test.csv", "w+") as f:
+            writer = csv.writer(f)
+            writer.writerow('[0]')
         for curr_epoch in trange(n_epochs, desc="Epoch"):
             curr_epoch = self.__start_epoch + curr_epoch
             self.model.train()
@@ -149,7 +156,14 @@ class TrainModel():
                         'optimizer_state_dict': self.__optimizer.state_dict()
                         }, path_save_model)
 
+            self.metrics.append([curr_epoch, loss_sum / nb_tr_steps, eval_loss, 0, eval_accuracy/nb_eval_steps, f1_score(pred_tags, valid_tags)])
+
         self.__start_epoch = self.__start_epoch + n_epochs
+
+        with open(f'{Path(path)}metrics.csv', 'w+') as f:
+            writer = csv.writer(f)
+            for row in self.metrics:
+                writer.writerow(row)
             
     def __flat_accuracy(self, preds, labels):
         pred_flat = np.argmax(preds, axis=2).flatten()

@@ -10,4 +10,5 @@ numpy==1.17.2
 tqdm==4.36.1
 pandas==0.25.1
 scikit_learn==0.22.2.post1
-tensorflow==1.15.0 # python 3.7.6 needed for this version
+tensorflow==1.15.0 # python 3.7.6 needed for this versionpath==13.1.0
+path==13.1.0
