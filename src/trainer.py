@@ -29,6 +29,7 @@ class TrainModel():
         self.__val_loader = val_loader
 
         config = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model)
+        config[num_labels] = len(tag2idx)
         print(f"config: {config}")
         # , **{'num_labels':len(tag2idx)}
         self.model = AutoModelForTokenClassification.from_config(config).to(self.device) ####
