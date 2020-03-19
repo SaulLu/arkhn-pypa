@@ -1,12 +1,13 @@
 import os
 import string
 import xml.etree.ElementTree as ET
-
+import re
 import pandas as pd
 
 
 def clean_word(word):
     s = "#/-_ \n\t,."
+    s = re.sub(r'[.;$&]|#[0-9]{4}', '', s)
     w = word.rstrip(s)
     return w.lstrip(s)
 
@@ -154,4 +155,4 @@ def map_output(words):
 
 def save_to_csv(path, filename, df):
     p = os.path.join(path, filename)
-    df.to_csv(p, encoding='latin1')
+    df.to_csv(p, encoding='utf-8')
