@@ -114,7 +114,6 @@ class SentenceGetter(object):
         else:
             self.data = pd.read_csv(
                 data_path, encoding=encoding).fillna(method="ffill")
-        self.data = pd.read_csv(data_path, encoding=encoding).fillna(method="ffill")
         self.empty = False
         agg_func = lambda s: [
             (w, t) for w, t in zip(s["word"].values.tolist(), s["tag"].values.tolist())
