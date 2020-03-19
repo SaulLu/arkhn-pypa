@@ -28,7 +28,7 @@ class TrainModel():
         self.__train_loader = train_loader
         self.__val_loader = val_loader
 
-        config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx))
+        config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
         # config['num_labels'] = len(tag2idx)
         print(f"config: {config}")
         print(f"unused_kwargs: {unused_kwargs}")
