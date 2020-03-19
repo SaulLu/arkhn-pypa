@@ -33,7 +33,7 @@ class TrainModel():
         print(f"config: {config}")
         print(f"unused_kwargs: {unused_kwargs}")
         # , **{'num_labels':len(tag2idx)}
-        self.model = AutoModelForTokenClassification.from_pretrained(pretrained_model_name_or_path=self.pretrained_model).to(self.device) ####
+        self.model = AutoModelForTokenClassification.from_config(config).to(self.device) ####
         print(f"model: {self.model}")
         self.__optimizer = self.__set_optimizer()
         self.__start_epoch = 0
