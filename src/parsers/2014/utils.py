@@ -7,8 +7,8 @@ import pandas as pd
 
 def clean_word(word):
     s = "#/-_ \n\t,."
-    s = re.sub(r'[.;$&]|#[0-9]{4}', '', s)
-    w = word.rstrip(s)
+    w = re.sub(r'[.;$&]|#[0-9]{4}', '', word)
+    w = w.rstrip(s)
     return w.lstrip(s)
 
 
