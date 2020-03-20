@@ -10,7 +10,6 @@ from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
-from src.models.bert_model import BertForTokenClassificationModified
 
 class TrainModel():
     def __init__(
