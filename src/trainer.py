@@ -2,13 +2,15 @@ import numpy as np
 import time
 
 import torch
+from torch import nn
 from seqeval.metrics import f1_score
 from torch.optim import Adam
-from pytorch_pretrained_bert import BertForTokenClassification
+from transformers import AutoModelForTokenClassification, AutoConfig
 from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
+from src.models.bert_model import BertForTokenClassificationModified
 
 class TrainModel():
     def __init__(
@@ -28,7 +30,14 @@ class TrainModel():
         self.__train_loader = train_loader
         self.__val_loader = val_loader
 
-        self.model = BertForTokenClassification.from_pretrained(self.pretrained_model, num_labels=len(tag2idx)).to(self.device) ####
+        config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
+        assert unused_kwargs == {}
+        self.model = AutoModelForTokenClassification.from_config(config)
+        if torch.cuda.device_count() > 1:
+            print("Let's use", torch.cuda.device_count(), "GPUs!")
+            self.model = nn.DataParallel(self.model)
+
+        self.model.to(self.device)
 
         self.__optimizer = self.__set_optimizer()
         self.__start_epoch = 0
@@ -73,7 +82,10 @@ class TrainModel():
                 mask = mask.to(self.device)
                 tags = tags.to(self.device)
 
-                loss = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
+                outputs = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
+                loss = outputs[0]
+                if torch.cuda.device_count() > 1:
+                    loss = loss.mean()
                 loss.backward()
 
                 loss_sum += loss.item()
@@ -99,10 +111,9 @@ class TrainModel():
                 input_ids, mask, tags = batch
                 
                 with torch.no_grad():
-                    tmp_eval_loss = self.model(input_ids, token_type_ids=None,
+                    outputs = self.model(input_ids, token_type_ids=None,
                                         attention_mask=mask, labels=tags)
-                    logits = self.model(input_ids, token_type_ids=None,
-                                attention_mask=mask)
+                tmp_eval_loss, logits = outputs[:2]
                 logits = logits.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
                 predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
