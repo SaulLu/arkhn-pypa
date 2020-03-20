@@ -85,6 +85,10 @@ class TrainModel():
 
                 outputs = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
                 loss = outputs[0]
+                if torch.cuda.device_count() > 1:
+                    print(f"loss: {loss}")
+                    loss = loss.mean()
+                    print(f"loss: {loss}")
                 loss.backward()
 
                 loss_sum += loss.item()
