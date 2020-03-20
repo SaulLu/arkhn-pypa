@@ -89,6 +89,7 @@ class TrainModel():
                     print(f"loss: {loss}")
                     loss = loss.mean()
                     print(f"loss: {loss}")
+                print(f"loss: {loss}")
                 loss.backward()
 
                 loss_sum += loss.item()
