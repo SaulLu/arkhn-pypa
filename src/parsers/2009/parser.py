@@ -1,5 +1,4 @@
 import os
-from nltk import pos_tag, RegexpParser
 import pandas as pd
 import numpy as np
 import re
