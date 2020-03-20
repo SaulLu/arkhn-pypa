@@ -2,7 +2,7 @@
 #PBS -N test_pypa3
 #PBS -P arkhn-3a
 #PBS -l walltime=04:00:00
-#PBS -l select=1:ngpus=1:mem=30gb
+#PBS -l select=1:ngpus=2:mem=30gb
 #PBS -o output_pypa.txt
 #PBS -e error_pypa.txt
 #PBS -q gpuq 
@@ -15,4 +15,4 @@ module load anaconda3/5.3.1
 source activate pypa_env
 
 # Run code
-python ./pypa.py --n_epochs 51 --pretrained_model 'monologg/biobert_v1.1_pubmed'
+python ./pypa.py --n_epochs 1 --pretrained_model 'bert-base-cased'
