@@ -8,7 +8,7 @@ from src.dataset import NerDataset
 from src.trainer import TrainModel
 from src.utils.loader import get_path_last_model
 
-MODEL_TYPE:{
+MODEL_TYPE = {
     'bert':{
         'base':'bert-base-cased',
         'biobert': 'monologg/biobert_v1.1_pubmed'
@@ -101,7 +101,7 @@ def __set_argparse():
         "--pretrained_model",
         type=str,
         default='bert-base-cased',
-        help="Give the name of the pre-trained model you wish to use. The usable models are: Give the name of the pre-trained model you wish to use. The usable models are: {MODEL_TYPE}")
+        help=f"Give the name of the pre-trained model you wish to use. The usable models are: Give the name of the pre-trained model you wish to use. The usable models are: {MODEL_TYPE}")
     parser.add_argument(
         "--batch_size",
         type=int,
@@ -130,7 +130,6 @@ def __set_argparse():
         default=False,
         help="True, automatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
     
-
     return(parser)
 
 def float_between_0_and_1(x):
