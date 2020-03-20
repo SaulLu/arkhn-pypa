@@ -2,6 +2,7 @@ import numpy as np
 import time
 
 import torch
+from torch import nn
 from seqeval.metrics import f1_score
 from torch.optim import Adam
 from transformers import AutoModelForTokenClassification, AutoConfig
