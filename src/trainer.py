@@ -9,6 +9,7 @@ from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
+from src.models.bert_model import BertForTokenClassificationModified
 
 class TrainModel():
     def __init__(
@@ -30,7 +31,14 @@ class TrainModel():
 
         config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
         assert unused_kwargs == {}
-        self.model = AutoModelForTokenClassification.from_config(config).to(self.device)
+
+        self.model = BertForTokenClassificationModified.from_config(config)
+        if torch.cuda.device_count() > 1:
+            print("Let's use", torch.cuda.device_count(), "GPUs!")
+            self.model = nn.DataParallel(self.model)
+            
+        self.model.to(self.device)
+
         self.__optimizer = self.__set_optimizer()
         self.__start_epoch = 0
 
