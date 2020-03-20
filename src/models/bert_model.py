@@ -29,10 +29,6 @@ from transformers import (
     BERT_PRETRAINED_MODEL_ARCHIVE_MAP
 )
 
-from transformers.files_utils import(
-    add_start_docstrings_to_callable
-)
-
 BERT_START_DOCSTRING = r"""
     This model is a PyTorch `torch.nn.Module <https://pytorch.org/docs/stable/nn.html#torch.nn.Module>`_ sub-class.
     Use it as a regular PyTorch Module and refer to the PyTorch documentation for all matter related to general
@@ -99,7 +95,6 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
 
         self.init_weights()
 
-    @add_start_docstrings_to_callable(BERT_INPUTS_DOCSTRING)
     def forward(
         self,
         input_ids=None,
