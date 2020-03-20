@@ -32,8 +32,7 @@ class TrainModel():
 
         config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
         assert unused_kwargs == {}
-
-        self.model = BertForTokenClassificationModified.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx))
+        self.model = AutoModelForTokenClassification.from_config(config)
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             self.model = nn.DataParallel(self.model)
@@ -86,10 +85,7 @@ class TrainModel():
                 outputs = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
                 loss = outputs[0]
                 if torch.cuda.device_count() > 1:
-                    print(f"loss: {loss}")
                     loss = loss.mean()
-                    print(f"loss: {loss}")
-                print(f"loss: {loss}")
                 loss.backward()
 
                 loss_sum += loss.item()
