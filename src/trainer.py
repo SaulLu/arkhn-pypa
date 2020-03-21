@@ -38,7 +38,9 @@ class TrainModel():
         if path_previous_model:
             self.__resume_training(path_previous_model)
         
-        self.metrics = [['epoch', 'train_loss', 'val_loss', 'train_accuracy', 'val_accuracy', 'f1']]
+        with open('metrics.csv', 'w+') as f:
+            writer = csv.writer(f)
+            writer.writerow(['epoch', 'train_loss', 'val_loss', 'train_accuracy', 'val_accuracy', 'f1'])
     
     def __resume_training(self, path_model):
         checkpoint = torch.load(path_model)
@@ -96,8 +98,8 @@ class TrainModel():
             
             pred_tags = [self.idx2tag[p_i] for p in train_predictions + eval_predictions for p_i in p]
             valid_tags = [self.idx2tag[l_ii] for l in train_true_labels + eval_true_labels for l_i in l for l_ii in l_i]
-            f1_score_value = f1_score(pred_tags, valid_tags)
-            print(f"F1-Score: {f1_score_value}")
+            f1_score = f1_score(pred_tags, valid_tags)
+            print(f"F1-Score: {f1_score}")
 
             labels_list = list(self.tag2idx.keys())
 
@@ -124,14 +126,11 @@ class TrainModel():
                         'optimizer_state_dict': self.__optimizer.state_dict()
                         }, path_save_model)
 
-            self.metrics.append([curr_epoch, train_loss, eval_loss, train_accuracy, eval_accuracy, f1_score_value])
+            with open('metrics.csv', 'a') as f:
+                writer = csv.writer(f)
+                writer.writerow([curr_epoch, train_loss, eval_loss, train_accuracy, eval_accuracy, f1_score])
 
         self.__start_epoch = self.__start_epoch + n_epochs
-    
-        with open(f'{Path(path)}metrics.csv', 'w+') as f:
-            writer = csv.writer(f)
-            for row in self.metrics:
-                writer.writerow(row)
             
     def __flat_accuracy(self, preds, labels):
         pred_flat = np.argmax(preds, axis=2).flatten()
