@@ -98,8 +98,8 @@ class TrainModel():
             
             pred_tags = [self.idx2tag[p_i] for p in train_predictions + eval_predictions for p_i in p]
             valid_tags = [self.idx2tag[l_ii] for l in train_true_labels + eval_true_labels for l_i in l for l_ii in l_i]
-            f1_score = f1_score(pred_tags, valid_tags)
-            print(f"F1-Score: {f1_score}")
+            f1_score_value = f1_score(pred_tags, valid_tags)
+            print(f"F1-Score: {f1_score_value}")
 
             labels_list = list(self.tag2idx.keys())
 
@@ -128,7 +128,7 @@ class TrainModel():
 
             with open('metrics.csv', 'a') as f:
                 writer = csv.writer(f)
-                writer.writerow([curr_epoch, train_loss, eval_loss, train_accuracy, eval_accuracy, f1_score])
+                writer.writerow([curr_epoch, train_loss, eval_loss, train_accuracy, eval_accuracy, f1_score_value])
 
         self.__start_epoch = self.__start_epoch + n_epochs
             
