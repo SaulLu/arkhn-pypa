@@ -15,14 +15,14 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
         
         path_conf_mat_pred = "data/parameters/img/" \
                                 + curr_time \
-                                + "_confusion_matrix_pred" \
+                                + "_precision_matrix" \
                                 + '_epoch_' \
                                 +  curr_epoch \
                                 + ".png"
         
         path_conf_mat_true = "data/parameters/img/" \
                                 + curr_time \
-                                + "_confusion_matrix_true" \
+                                + "_recall_matrix_" \
                                 + '_epoch_' \
                                 +  curr_epoch \
                                 + ".png"

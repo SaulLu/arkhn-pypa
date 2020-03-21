@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
-from pytorch_pretrained_bert import BertTokenizer
+from transformers import AutoTokenizer
 
 
 class NerDataset(Dataset):
@@ -34,7 +34,7 @@ class NerDataset(Dataset):
         self.tag2idx = {t: i for i, t in enumerate(self.tag_vals)}
         self.idx2tag = {v: k for k, v in self.tag2idx.items()}
 
-        tokenizer = BertTokenizer.from_pretrained(pretrained_model, do_lower_case=True)
+        tokenizer = AutoTokenizer.from_pretrained(pretrained_model, do_lower_case=True)
 
         tokenized_texts = [
             tokenizer.tokenize(sent)

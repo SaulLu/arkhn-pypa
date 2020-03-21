@@ -8,6 +8,15 @@ from src.dataset import NerDataset
 from src.trainer import TrainModel
 from src.utils.loader import get_path_last_model
 
+MODEL_TYPE = {
+    'bert':{
+        'base':'bert-base-cased',
+        'biobert': 'monologg/biobert_v1.1_pubmed'
+    },
+    'camembert':{
+        'base':'camembert-base'
+    }
+}
 
 def main():
     parser = __set_argparse()
@@ -33,7 +42,7 @@ def main():
         data_path=data_path,
         encoding="latin1",
         max_len=75,
-        pretrained_model="bert-base-uncased"
+        pretrained_model=pretrained_model
         )
     
     train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
@@ -72,56 +81,55 @@ def __set_argparse():
         type=str,
         choices=['train','test'],
         default='train',
-        help="")
+        help="mode train or test")
     parser.add_argument(
         "--val_size",
         type=float_between_0_and_1,
         default=0.2,
-        help="")
+        help="percentage of dataset allocated to validation. Attention, the sum of test_size and val_size must be less than 1")
     parser.add_argument(
         "--test_size",
         type=float_between_0_and_1,
         default=0.2,
-        help="")
+        help="percentage of dataset allocated to test. Attention, the sum of test_size and val_size must be less than 1")
     parser.add_argument(
         "--n_epochs",
         type=int,
         default=1,
-        help="")
+        help="number of epochs for training")
     parser.add_argument(
         "--pretrained_model",
         type=str,
-        default='bert-base-uncased',
-        help="")
+        default='bert-base-cased',
+        help=f"Give the name of the pre-trained model you wish to use. The usable models are: Give the name of the pre-trained model you wish to use. The usable models are: {MODEL_TYPE}")
     parser.add_argument(
         "--batch_size",
         type=int,
-        default=10,
-        help="")
+        default=100,
+        help="Batch size for training")
     parser.add_argument(
         "--full_finetuning",
         type=bool,
         default=True,
-        help="")
+        help="True if you want to re-train all the model's weights. False if you just want to train the classifier weights.")
     
     last_prev_model = None
     parser.add_argument(
         "--path_previous_model",
         type=str,
         default=last_prev_model,
-        help="")
+        help="Set the relative path to the model file from which you want to continue training")
     parser.add_argument(
         "--data_path",
         type=str,
         default='data/inputs/2009/dataframe_final_clean.csv',
-        help="")
+        help="Set the relative path to the csv file of the input data you want to work on")
     parser.add_argument(
         "--continue_last_train",
         type=bool,
         default=False,
-        help="")
+        help="True, automatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
     
-
     return(parser)
 
 def float_between_0_and_1(x):
