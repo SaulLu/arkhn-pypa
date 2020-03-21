@@ -189,7 +189,7 @@ class TrainModel:
                     path_save_model,
                 )
 
-            with open(f"{path}metrics.csv", "a") as f:
+            with open(f"{self.path}metrics.csv", "a") as f:
                 writer = csv.writer(f)
                 writer.writerow(
                     [
