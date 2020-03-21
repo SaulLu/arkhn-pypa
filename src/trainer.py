@@ -63,15 +63,9 @@ class TrainModel():
         return(Adam(optimizer_grouped_parameters, lr=3e-5))
 
     def train(self, n_epochs=20, max_grad_norm=1.0, path='data/results/'):
-        with open("test.csv", "w+") as f:
-            writer = csv.writer(f)
-            writer.writerow('[0]')
         for curr_epoch in trange(n_epochs, desc="Epoch"):
             curr_epoch = self.__start_epoch + curr_epoch
             self.model.train()
-
-            loss_sum = 0
-            nb_tr_sentences, nb_tr_steps = 0, 0
 
             for batch in self.__train_loader:
 
@@ -83,53 +77,27 @@ class TrainModel():
                 loss = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
                 loss.backward()
 
-                loss_sum += loss.item()
-                nb_tr_sentences += input_ids.size(0)
-                nb_tr_steps += 1
-
                 torch.nn.utils.clip_grad_norm_(parameters=self.model.parameters(), max_norm=max_grad_norm)
 
                 self.__optimizer.step()
                 self.model.zero_grad()
-
-            print("Train loss: {}".format(loss_sum/nb_tr_steps))
             
             self.model.eval()
 
-            eval_loss, eval_accuracy = 0, 0
-            nb_eval_steps, nb_eval_sentences = 0, 0
-            predictions , true_labels = [], []
+            train_loss, train_accuracy, train_predictions, train_true_labels = self.__compute_loss_and_accuracy(self.__train_loader)
 
-            for batch in self.__val_loader:
+            eval_loss, eval_accuracy, eval_predictions, eval_true_labels = self.__compute_loss_and_accuracy(self.__val_loader)
 
-                batch = tuple(t.to(self.device) for t in batch)
-                input_ids, mask, tags = batch
-                
-                with torch.no_grad():
-                    tmp_eval_loss = self.model(input_ids, token_type_ids=None,
-                                        attention_mask=mask, labels=tags)
-                    logits = self.model(input_ids, token_type_ids=None,
-                                attention_mask=mask)
-                logits = logits.detach().cpu().numpy()
-                label_ids = tags.to('cpu').numpy()
-                predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
-                true_labels.append(label_ids)
-                
-                tmp_eval_accuracy = self.__flat_accuracy(logits, label_ids)
-                
-                eval_loss += tmp_eval_loss.mean().item()
-                eval_accuracy += tmp_eval_accuracy
-                
-                nb_eval_sentences += input_ids.size(0)
-                nb_eval_steps += 1
+            print(f"Train loss: {train_loss}")
+            print(f"Train accuracy: {train_accuracy}")
             
-            eval_loss = eval_loss/nb_eval_steps
             print(f"Validation loss: {eval_loss}")
-            print(f"Validation Accuracy: {eval_accuracy/nb_eval_steps}")
+            print(f"Validation accuracy: {eval_accuracy}")
             
-            pred_tags = [self.idx2tag[p_i] for p in predictions for p_i in p]
-            valid_tags = [self.idx2tag[l_ii] for l in true_labels for l_i in l for l_ii in l_i]
-            print(f"F1-Score: {f1_score(pred_tags, valid_tags)}")
+            pred_tags = [self.idx2tag[p_i] for p in train_predictions + eval_predictions for p_i in p]
+            valid_tags = [self.idx2tag[l_ii] for l in train_true_labels + eval_true_labels for l_i in l for l_ii in l_i]
+            f1_score = f1_score(pred_tags, valid_tags)
+            print(f"F1-Score: {f1_score}")
 
             labels_list = list(self.tag2idx.keys())
 
@@ -150,16 +118,16 @@ class TrainModel():
                                     + '.pt'
                 torch.save({
                         'epoch': curr_epoch,
-                        'train_loss': loss_sum/nb_tr_steps,
+                        'train_loss': train_loss,
                         'val_loss': eval_loss,
                         'model_state_dict': self.model.state_dict(),
                         'optimizer_state_dict': self.__optimizer.state_dict()
                         }, path_save_model)
 
-            self.metrics.append([curr_epoch, loss_sum / nb_tr_steps, eval_loss, 0, eval_accuracy/nb_eval_steps, f1_score(pred_tags, valid_tags)])
+            self.metrics.append([curr_epoch, train_loss, eval_loss, train_accuracy, eval_accuracy, f1_score])
 
         self.__start_epoch = self.__start_epoch + n_epochs
-
+    
         with open(f'{Path(path)}metrics.csv', 'w+') as f:
             writer = csv.writer(f)
             for row in self.metrics:
@@ -169,6 +137,38 @@ class TrainModel():
         pred_flat = np.argmax(preds, axis=2).flatten()
         labels_flat = labels.flatten()
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
+    
+
+    def __compute_loss_and_accuracy(self, loader):
+
+        loss, accuracy = 0, 0
+        nb_steps, nb_sentences = 0, 0
+        predictions , true_labels = [], []
+
+        for batch in loader:
+
+            batch = tuple(t.to(self.device) for t in batch)
+            input_ids, mask, tags = batch
+            
+            with torch.no_grad():
+                tmp_loss = self.model(input_ids, token_type_ids=None,
+                                    attention_mask=mask, labels=tags)
+                logits = self.model(input_ids, token_type_ids=None,
+                            attention_mask=mask)
+            logits = logits.detach().cpu().numpy()
+            label_ids = tags.to('cpu').numpy()
+            predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
+            true_labels.append(label_ids)
+            
+            tmp_accuracy = self.__flat_accuracy(logits, label_ids)
+            
+            loss += tmp_loss.mean().item()
+            accuracy += tmp_accuracy
+            
+            nb_sentences += input_ids.size(0)
+            nb_steps += 1
+        
+        return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
 
 if __name__ == "__main__":
     pass
