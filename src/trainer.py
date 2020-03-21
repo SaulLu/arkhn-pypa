@@ -24,6 +24,7 @@ class TrainModel:
         batch_size=100,
         path_previous_model=None,
         full_finetuning=True,
+        path='data/results/'
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -37,6 +38,8 @@ class TrainModel:
         self.__train_loader = train_loader
         self.__val_loader = val_loader
 
+        self.path = Path(path)
+
         self.model = BertForTokenClassification.from_pretrained(
             self.pretrained_model, num_labels=len(tag2idx)
         ).to(
@@ -49,7 +52,7 @@ class TrainModel:
         if path_previous_model:
             self.__resume_training(path_previous_model)
 
-        with open("metrics.csv", "w+") as f:
+        with open(f"{path}metrics.csv", "w+") as f:
             writer = csv.writer(f)
             writer.writerow(
                 [
@@ -94,7 +97,7 @@ class TrainModel:
 
         return Adam(optimizer_grouped_parameters, lr=3e-5)
 
-    def train(self, n_epochs=20, max_grad_norm=1.0, path="data/results/"):
+    def train(self, n_epochs=20, max_grad_norm=1.0):
         for curr_epoch in trange(n_epochs, desc="Epoch"):
             curr_epoch = self.__start_epoch + curr_epoch
             self.model.train()
@@ -186,7 +189,7 @@ class TrainModel:
                     path_save_model,
                 )
 
-            with open("metrics.csv", "a") as f:
+            with open(f"{path}metrics.csv", "a") as f:
                 writer = csv.writer(f)
                 writer.writerow(
                     [
