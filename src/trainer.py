@@ -199,10 +199,10 @@ class TrainModel:
 
             if curr_epoch % 10 == 0:
                 name_save_model = (
-                    + curr_time
+                    curr_time
                     + "_test_model"
                     + "_epoch_"
-                    + str(curr_epoch)
+                    + curr_epoch_str
                     + ".pt"
                 )
                 path_save_model = os.path.join(self.saving_dir, "intermediate", name_save_model)
