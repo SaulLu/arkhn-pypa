@@ -67,7 +67,8 @@ class TrainModel:
                     "val_loss",
                     "train_accuracy",
                     "val_accuracy",
-                    "f1",
+                    "train_f1",
+                    "val_f1",
                 ]
             )
 
@@ -226,7 +227,8 @@ class TrainModel:
                         eval_loss,
                         train_accuracy,
                         eval_accuracy,
-                        f1_score_value,
+                        train_f1_score,
+                        eval_f1_score,
                     ]
                 )
 

@@ -1,6 +1,5 @@
 import pandas as pd
 import seaborn as sn
-import os
 import matplotlib.pyplot as plt
 
 def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epoch=None, prefix='', saving_dir='data/results/'):
