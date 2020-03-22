@@ -18,4 +18,4 @@ pip freeze | grep -v -f requirements.txt - | xargs pip uninstall -y
 pip install -r requirements.txt --upgrade
 
 # Run code
-python ./pypa.py --n_epochs 11 --pretrained_model 'bert-base-cased' --continue_last_train
+python ./pypa.py --n_epochs 11 --pretrained_model 'bert-base-cased' --continue_last_train True
