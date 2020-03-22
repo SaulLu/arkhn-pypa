@@ -8,6 +8,7 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
 
     if curr_epoch and curr_time:
         name_conf_mat = curr_time \
+                            + "_"\
                             + prefix \
                             + "_confusion_matrix" \
                             + '_epoch_' \
@@ -17,6 +18,7 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
         path_conf_mat = os.path.join(saving_dir, "img", name_conf_mat)
         
         name_mat_precision = curr_time \
+                            + "_"\
                             + prefix \
                             + "_precision_matrix" \
                             + '_epoch_' \
@@ -26,6 +28,7 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
         path_mat_precision = os.path.join(saving_dir, "img", name_mat_precision)
         
         name_mat_recall = curr_time \
+                            + "_"\
                             + prefix \
                             + "_recall_matrix" \
                             + '_epoch_' \
