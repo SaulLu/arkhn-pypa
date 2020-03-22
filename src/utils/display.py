@@ -3,46 +3,49 @@ import seaborn as sn
 import os
 import matplotlib.pyplot as plt
 
-def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epoch=None, saving_dir='data/results/'):
+def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epoch=None, prefix='', saving_dir='data/results/'):
     path_conf_mat = None
 
     if curr_epoch and curr_time:
         name_conf_mat = curr_time \
-                                + "_confusion_matrix" \
-                                + '_epoch_' \
-                                +  curr_epoch \
-                                + ".png"
+                            + prefix \
+                            + "_confusion_matrix" \
+                            + '_epoch_' \
+                            +  curr_epoch \
+                            + ".png"
         
         path_conf_mat = os.path.join(saving_dir, "img", name_conf_mat)
         
         name_mat_precision = curr_time \
-                                + "_precision_matrix" \
-                                + '_epoch_' \
-                                +  curr_epoch \
-                                + ".png"
-        
+                            + prefix \
+                            + "_precision_matrix" \
+                            + '_epoch_' \
+                            +  curr_epoch \
+                            + ".png"
+    
         path_mat_precision = os.path.join(saving_dir, "img", name_mat_precision)
         
         name_mat_recall = curr_time \
-                                + "_recall_matrix" \
-                                + '_epoch_' \
-                                +  curr_epoch \
-                                + ".png"
+                            + prefix \
+                            + "_recall_matrix" \
+                            + '_epoch_' \
+                            +  curr_epoch \
+                            + ".png"
         
         path_mat_recall = os.path.join(saving_dir, "img", name_mat_recall)
     
     df_conf_matrix = pd.DataFrame(conf_matrix, labels_list, labels_list)
-    display_confusion_matrix(df_conf_matrix, path=path_conf_mat, title='Confusion Marix')
+    display_confusion_matrix(df_conf_matrix, path=path_conf_mat, title=f'Confusion Marix - {prefix.capitalize()}')
 
     df_conf_matrix_true = (df_conf_matrix.T / df_conf_matrix.T.sum()).T * 100
     df_conf_matrix_true = df_conf_matrix_true.round(0)
     display_confusion_matrix(df_conf_matrix_true, path=path_mat_recall, 
-        title='Recall Matrix (%)')
+        title=f'Recall Matrix (%) - {prefix.capitalize()}')
     
     df_conf_matrix_pred = df_conf_matrix / df_conf_matrix.sum() *100
     df_conf_matrix_pred = df_conf_matrix_pred.round(0)
     display_confusion_matrix(df_conf_matrix_pred, path=path_mat_precision, 
-        title='Precision Matrix (%)')
+        title=f'Precision Matrix (%) - {prefix.capitalize()}')
 
 def display_confusion_matrix(df_conf_matrix, path=None, title=None):
     _, __ = plt.subplots()
