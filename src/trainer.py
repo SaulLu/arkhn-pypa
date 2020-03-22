@@ -57,7 +57,8 @@ class TrainModel:
         if path_previous_model:
             self.__resume_training(path_previous_model)
 
-        with open(f"{self.saving_dir}metrics.csv", "w+") as f:
+        path_metrics = os.path.join(self.saving_dir,"metrics.csv")
+        with open(path_metrics, "w+") as f:
             writer = csv.writer(f)
             writer.writerow(
                 [
@@ -196,7 +197,8 @@ class TrainModel:
                     path_save_model,
                 )
 
-            with open(f"{self.saving_dir}metrics.csv", "a") as f:
+            path_metrics = os.path.join(self.saving_dir,"metrics.csv")
+            with open(path_metrics, "a") as f:
                 writer = csv.writer(f)
                 writer.writerow(
                     [
