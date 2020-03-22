@@ -6,7 +6,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 from src.dataset import NerDataset
 from src.trainer import TrainModel
-from src.utils.loader import get_path_last_model
+from src.utils.loader import get_path_last_model, set_saving_dir
 
 MODEL_TYPE = {
     'bert':{
@@ -51,6 +51,8 @@ def main():
         if continue_last_train:
             path_previous_model = get_path_last_model()
             print(f"path_previous_model loaded : {path_previous_model}")
+        
+        saving_dir = set_saving_dir(path_previous_model, pretrained_model, data_path)
 
         trainer = TrainModel(
             train_loader=train_loader, 
@@ -60,7 +62,8 @@ def main():
             pretrained_model=pretrained_model, 
             batch_size=batch_size, 
             path_previous_model=path_previous_model, 
-            full_finetuning=full_finetuning
+            full_finetuning=full_finetuning,
+            saving_dir = saving_dir
         )
 
         config = {

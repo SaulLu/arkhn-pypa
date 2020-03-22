@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import csv
+import os
 from path import Path
 
 import torch
@@ -25,7 +26,7 @@ class TrainModel:
         batch_size=100,
         path_previous_model=None,
         full_finetuning=True,
-        path='data/results/'
+        saving_dir = 'data/results/'
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -39,7 +40,7 @@ class TrainModel:
         self.__train_loader = train_loader
         self.__val_loader = val_loader
 
-        self.path = Path(path)
+        self.saving_dir = Path(saving_dir)
   
         config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
         assert unused_kwargs == {}
@@ -56,7 +57,8 @@ class TrainModel:
         if path_previous_model:
             self.__resume_training(path_previous_model)
 
-        with open(f"{path}metrics.csv", "w+") as f:
+        path_metrics = os.path.join(self.saving_dir,"metrics.csv")
+        with open(path_metrics, "w+") as f:
             writer = csv.writer(f)
             writer.writerow(
                 [
@@ -176,7 +178,7 @@ class TrainModel:
             train_f1_score = f1_score(train_pred_tags, train_valid_tags)
             eval_f1_score = f1_score(eval_pred_tags, eval_valid_tags)
 
-            print(f"Train F1-Score: {eval_f1_score}")
+            print(f"Train F1-Score: {train_f1_score}")
             print(f"Validation F1-Score: {eval_f1_score}")
 
             labels_list = list(self.tag2idx.keys())
@@ -188,22 +190,22 @@ class TrainModel:
             train_conf_matrix = confusion_matrix(train_valid_tags, train_pred_tags, labels=labels_list)
             eval_conf_matrix = confusion_matrix(eval_valid_tags, eval_pred_tags, labels=labels_list)
             generate_confusion_matrix(
-                train_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='train'
+                train_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='train', saving_dir=self.saving_dir
             )
             generate_confusion_matrix(
-                eval_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='eval'
+                eval_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='eval', saving_dir=self.saving_dir
             )
             print(f"Confusion matrix saved")
 
             if curr_epoch % 10 == 0:
-                path_save_model = (
-                    "data/parameters/intermediate/"
-                    + curr_time
+                name_save_model = (
+                    curr_time
                     + "_test_model"
                     + "_epoch_"
-                    + str(curr_epoch)
+                    + curr_epoch_str
                     + ".pt"
                 )
+                path_save_model = os.path.join(self.saving_dir, "intermediate", name_save_model)
                 torch.save(
                     {
                         "epoch": curr_epoch,
@@ -215,7 +217,8 @@ class TrainModel:
                     path_save_model,
                 )
 
-            with open(f"{self.path}metrics.csv", "a") as f:
+            path_metrics = os.path.join(self.saving_dir,"metrics.csv")
+            with open(path_metrics, "a") as f:
                 writer = csv.writer(f)
                 writer.writerow(
                     [
