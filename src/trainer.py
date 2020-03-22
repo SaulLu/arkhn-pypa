@@ -65,7 +65,8 @@ class TrainModel:
                     "val_loss",
                     "train_accuracy",
                     "val_accuracy",
-                    "f1",
+                    "train_f1",
+                    "val_f1",
                 ]
             )
 
@@ -149,19 +150,34 @@ class TrainModel:
             print(f"Validation loss: {eval_loss}")
             print(f"Validation accuracy: {eval_accuracy}")
 
-            pred_tags = [
+            train_pred_tags = [
                 self.idx2tag[p_i]
-                for p in train_predictions + eval_predictions
+                for p in train_predictions
                 for p_i in p
             ]
-            valid_tags = [
+            train_valid_tags = [
                 self.idx2tag[l_ii]
-                for l in train_true_labels + eval_true_labels
+                for l in train_true_labels
                 for l_i in l
                 for l_ii in l_i
             ]
-            f1_score_value = f1_score(pred_tags, valid_tags)
-            print(f"F1-Score: {f1_score_value}")
+            eval_pred_tags = [
+                self.idx2tag[p_i]
+                for p in eval_predictions
+                for p_i in p
+            ]
+            eval_valid_tags = [
+                self.idx2tag[l_ii]
+                for l in eval_true_labels
+                for l_i in l
+                for l_ii in l_i
+            ]
+
+            train_f1_score = f1_score(train_pred_tags, train_valid_tags)
+            eval_f1_score = f1_score(eval_pred_tags, eval_valid_tags)
+
+            print(f"Train F1-Score: {eval_f1_score}")
+            print(f"Validation F1-Score: {eval_f1_score}")
 
             labels_list = list(self.tag2idx.keys())
 
@@ -169,9 +185,13 @@ class TrainModel:
 
             curr_epoch_str = str(curr_epoch)
 
-            conf_matrix = confusion_matrix(valid_tags, pred_tags, labels=labels_list)
+            train_conf_matrix = confusion_matrix(train_valid_tags, train_pred_tags, labels=labels_list)
+            eval_conf_matrix = confusion_matrix(eval_valid_tags, eval_pred_tags, labels=labels_list)
             generate_confusion_matrix(
-                conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time
+                train_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='train'
+            )
+            generate_confusion_matrix(
+                eval_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='eval'
             )
             print(f"Confusion matrix saved")
 
@@ -204,7 +224,8 @@ class TrainModel:
                         eval_loss,
                         train_accuracy,
                         eval_accuracy,
-                        f1_score_value,
+                        train_f1_score,
+                        eval_f1_score,
                     ]
                 )
 
