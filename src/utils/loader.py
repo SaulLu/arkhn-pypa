@@ -25,8 +25,9 @@ def set_saving_dir(path_previous_model, pretrained_model, data_path):
     if not path_previous_model:
         parent_path = "data/results"
         data_number = re.sub(r"\D", "", data_path)    
-        dir_name = time.strftime("%Y%m%d_%H%M%S") + "_" + \
-            pretrained_model + "_" + data_number
+        dir_name = time.strftime("%Y%m%d_%H%M%S") + "_" \
+            + re.sub('[^A-Za-z0-9]+', '', pretrained_model)\
+            + "_" + data_number
         path = os.path.join(parent_path, dir_name)
         path_int = os.path.join(path, "intermediate")
         path_img = os.path.join(path, "img")

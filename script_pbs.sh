@@ -1,5 +1,5 @@
 #PBS -S /bin/bash
-#PBS -N test_pypa_dir
+#PBS -N biobert_2009_fullfinetuning
 #PBS -P arkhn-3a
 #PBS -l walltime=04:00:00
 #PBS -l select=1:ngpus=2:mem=30gb
@@ -18,4 +18,4 @@ pip freeze | grep -v -f requirements.txt - | xargs pip uninstall -y
 pip install -r requirements.txt --upgrade
 
 # Run code
-python ./pypa.py --n_epochs 11 --pretrained_model 'bert-base-cased' --continue_last_train True
+python ./pypa.py --n_epochs 101 --pretrained_model 'monologg/biobert_v1.1_pubmed'
