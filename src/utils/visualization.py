@@ -8,6 +8,7 @@ def main():
     parser.add_argument(
         "--model_pathname",
         type=str,
+        default='test',
         help="name of the root folder associated to the model")
     model_pathname = parser.parse_args().model_pathname
 
