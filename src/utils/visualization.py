@@ -20,7 +20,7 @@ def main():
     train_f1 = []
     val_f1 = []
 
-    with open(f'data/{model_pathname}/results/metrics.csv', 'r') as f:
+    with open(f'data/results/{model_pathname}/metrics.csv', 'r') as f:
         reader = csv.reader(f)
         _ = next(reader)
         for row in reader:
@@ -56,7 +56,7 @@ def main():
     f1_plot.set(xlabel='Epoch', ylabel='F1')
     f1_plot.legend()
 
-    plt.savefig(f'data/{model_pathname}/results/metrics.png')
+    plt.savefig(f'data/results/{model_pathname}/metrics.png')
 
 if __name__ == "__main__":
     main()
