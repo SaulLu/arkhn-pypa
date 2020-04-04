@@ -36,6 +36,9 @@ def main():
     full_finetuning = args.full_finetuning
     continue_last_train = args.continue_last_train
 
+    dropout = args.dropout
+    modified_model = args.modified_model
+
     mode = args.mode
 
     dataset = NerDataset(
@@ -63,7 +66,9 @@ def main():
             batch_size=batch_size, 
             path_previous_model=path_previous_model, 
             full_finetuning=full_finetuning,
-            saving_dir = saving_dir
+            saving_dir = saving_dir,
+            dropout=dropout,
+            modified_model=modified_model
         )
 
         config = {

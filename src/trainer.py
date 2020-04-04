@@ -13,6 +13,7 @@ from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
+from src.models.bert_model_bis import BertForTokenClassificationModified
 
 
 class TrainModel:
@@ -26,7 +27,9 @@ class TrainModel:
         batch_size=100,
         path_previous_model=None,
         full_finetuning=True,
-        saving_dir = 'data/results/'
+        saving_dir = 'data/results/',
+        dropout = 0.1,
+        modified_model=False
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -41,10 +44,14 @@ class TrainModel:
         self.__val_loader = val_loader
 
         self.saving_dir = Path(saving_dir)
-
-        config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
+  
+        config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True, hidden_dropout_prob=dropout)
         assert unused_kwargs == {}
-        self.model = AutoModelForTokenClassification.from_config(config)
+        if modified_model:
+            self.model = BertForTokenClassificationModified(config)
+        else:
+            self.model = AutoModelForTokenClassification.from_config(config)
+
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             self.model = nn.DataParallel(self.model)
@@ -258,15 +265,15 @@ class TrainModel:
                 label_ids = tags.to('cpu').numpy()
                 predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
                 true_labels.append(label_ids)
-
+                
                 tmp_accuracy = self.__flat_accuracy(logits, label_ids)
-
+                
                 loss += tmp_loss.mean().item()
                 accuracy += tmp_accuracy
-
+                
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
-
+                
         return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
 
 
