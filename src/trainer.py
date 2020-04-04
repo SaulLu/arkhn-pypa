@@ -32,6 +32,7 @@ class TrainModel:
         modified_model=False,
         ignore_out_loss=False,
         weighted_loss=False,
+        weight_decay=0,
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -125,7 +126,7 @@ class TrainModel:
             param_optimizer = list(self.model.classifier.named_parameters())
             optimizer_grouped_parameters = [{"params": [p for n, p in param_optimizer]}]
 
-        return Adam(optimizer_grouped_parameters, lr=3e-5)
+        return Adam(optimizer_grouped_parameters, lr=3e-5, weight_decay=weight_decay)
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
         for curr_epoch in trange(n_epochs, desc="Epoch"):
