@@ -5,7 +5,9 @@ from torch.utils.data import DataLoader, RandomSampler
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from src.dataset import NerDataset
+from  src.dataset import FlairDataSet
 from src.trainer import TrainModel
+from src.flair_trainer import FlairTrainModel
 from src.utils.loader import get_path_last_model, set_saving_dir
 
 MODEL_TYPE = {
@@ -35,16 +37,22 @@ def main():
     path_previous_model = args.path_previous_model
     full_finetuning = args.full_finetuning
     continue_last_train = args.continue_last_train
+    flair = args.flair
 
     mode = args.mode
-
-    dataset = NerDataset(
-        data_path=data_path,
-        encoding="latin1",
-        max_len=75,
-        pretrained_model=pretrained_model
+    if not flair:
+        dataset = NerDataset(
+            data_path=data_path,
+            encoding="latin1",
+            max_len=75,
+            pretrained_model=pretrained_model
+            )
+    else:
+        dataset = FlairDataSet(
+            data_path=data_path,
+            encoding="latin1"
         )
-    
+
     train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
 
     if mode == 'train':
@@ -53,18 +61,27 @@ def main():
             print(f"path_previous_model loaded : {path_previous_model}")
         
         saving_dir = set_saving_dir(path_previous_model, pretrained_model, data_path)
-
-        trainer = TrainModel(
-            train_loader=train_loader, 
-            val_loader=val_loader, 
-            tag2idx=dataset.tag2idx, 
-            idx2tag=dataset.idx2tag, 
-            pretrained_model=pretrained_model, 
-            batch_size=batch_size, 
-            path_previous_model=path_previous_model, 
-            full_finetuning=full_finetuning,
-            saving_dir = saving_dir
-        )
+        if not flair:
+            trainer = TrainModel(
+                train_loader=train_loader,
+                val_loader=val_loader,
+                tag2idx=dataset.tag2idx,
+                idx2tag=dataset.idx2tag,
+                pretrained_model=pretrained_model,
+                batch_size=batch_size,
+                path_previous_model=path_previous_model,
+                full_finetuning=full_finetuning,
+                saving_dir = saving_dir
+            )
+        else:
+            trainer = FlairTrainModel(
+                train_loader=train_loader,
+                val_loader=val_loader,
+                tag2idx=dataset.tag2idx,
+                idx2tag=dataset.idx2tag,
+                batch_size=batch_size,
+                saving_dir=saving_dir
+            )
 
         config = {
         "n_epochs": n_epochs
@@ -132,6 +149,12 @@ def __set_argparse():
         type=bool,
         default=False,
         help="True, automatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
+    parser.add_argument(
+        "--flair",
+        type=bool,
+        default=False,
+        help="Set to True to use Flair instead of Bert Model"
+    )
     
     return(parser)
 

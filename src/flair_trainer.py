@@ -6,6 +6,7 @@ from path import Path
 
 import torch
 from torch import nn
+from torch.utils.data import DataLoader
 from seqeval.metrics import f1_score
 from torch.optim import Adam
 from tqdm import trange
@@ -15,7 +16,7 @@ from src.utils.display import generate_confusion_matrix
 from src.models.linear_model import  LinearModel
 
 
-class TrainModel:
+class FlairTrainModel:
     def __init__(
             self,
             train_loader,
@@ -64,7 +65,11 @@ class TrainModel:
                 ]
             )
 
-    def compute_w(self, train_loader, num_classes):
+    def compute_w(self, train_loader : DataLoader, num_classes):
+        _, targets = train_loader.dataset
+        t = targets.numpy()
+        freq = np.bincount(t)
+        return torch.Tensor(1 - (freq/freq.sum()))
 
 
     def __resume_training(self, path_model):
@@ -211,26 +216,24 @@ class TrainModel:
         loss, accuracy = 0, 0
         nb_steps, nb_sentences = 0, 0
         predictions, true_labels = [], []
+        with torch.no_grad():
+            for batch in loader:
+                batch = tuple(t.to(self.device) for t in batch)
+                tokens, tags = batch
+                outputs = self.model(tokens)
+                tmp_loss = self.criterion(outputs,tags)
 
-        for batch in loader:
-            batch = tuple(t.to(self.device) for t in batch)
-            input_ids, mask, tags = batch
-
-            with torch.no_grad():
-                outputs = self.model(input_ids, token_type_ids=None,
-                                     attention_mask=mask, labels=tags)
-                tmp_loss, logits = outputs[:2]
-                logits = logits.detach().cpu().numpy()
+                outputs = outputs.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
-                predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
+                predictions.extend([list(p) for p in np.argmax(outputs, axis=2)])
                 true_labels.append(label_ids)
 
-                tmp_accuracy = self.__flat_accuracy(logits, label_ids)
+                tmp_accuracy = self.__flat_accuracy(outputs, label_ids)
 
                 loss += tmp_loss.mean().item()
                 accuracy += tmp_accuracy
 
-                nb_sentences += input_ids.size(0)
+                nb_sentences += tokens.size(0)
                 nb_steps += 1
 
         return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
