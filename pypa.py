@@ -156,6 +156,10 @@ def __set_argparse():
         action='store_true',
         help="Ignores out-type labels in the loss calculation")
     parser.add_argument(
+        "--weighted_loss",
+        action='store_true',
+        help="If true, out-type labels have 4 times less weight than the others in the loss calculation.")
+    parser.add_argument(
         "--l2_regularization",
         type=float,
         default=0,
