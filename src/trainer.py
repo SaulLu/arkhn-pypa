@@ -75,7 +75,7 @@ class TrainModel:
 
         self.model.to(self.device)
 
-        self.__optimizer = self.__set_optimizer()
+        self.__optimizer = self.__set_optimizer(weight_decay)
         self.__start_epoch = 0
 
         if path_previous_model:
@@ -102,7 +102,7 @@ class TrainModel:
         self.__optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         self.__start_epoch = checkpoint["epoch"]
 
-    def __set_optimizer(self):
+    def __set_optimizer(self, weight_decay):
         if self.full_finetuning:
             param_optimizer = list(self.model.named_parameters())
             no_decay = ["bias", "gamma", "beta"]
