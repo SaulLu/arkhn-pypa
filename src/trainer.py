@@ -41,7 +41,7 @@ class TrainModel:
         self.__val_loader = val_loader
 
         self.saving_dir = Path(saving_dir)
-  
+
         config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
         assert unused_kwargs == {}
         self.model = AutoModelForTokenClassification.from_config(config)
@@ -258,15 +258,15 @@ class TrainModel:
                 label_ids = tags.to('cpu').numpy()
                 predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
                 true_labels.append(label_ids)
-                
+
                 tmp_accuracy = self.__flat_accuracy(logits, label_ids)
-                
+
                 loss += tmp_loss.mean().item()
                 accuracy += tmp_accuracy
-                
+
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
-                
+
         return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
 
 
