@@ -137,7 +137,16 @@ def __set_argparse():
         type=bool,
         default=False,
         help="True, automatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
-    
+    parser.add_argument(
+        "--dropout",
+        type=float_between_0_and_1,
+        default=0.0,
+        help="Dropout probability between bert layer and the classifier")
+    parser.add_argument(
+        "--modified_model",
+        type=bool,
+        default=False,
+        help="Uses a modified bert model instead of transformer's one")
     return(parser)
 
 def float_between_0_and_1(x):
