@@ -36,6 +36,9 @@ def main():
     full_finetuning = args.full_finetuning
     continue_last_train = args.continue_last_train
 
+    dropout = args.dropout
+    modified_model = args.modified_model
+
     mode = args.mode
 
     dataset = NerDataset(
@@ -54,6 +57,9 @@ def main():
         
         saving_dir = set_saving_dir(path_previous_model, pretrained_model, data_path)
 
+        ignore_out_loss = args.ignore_out
+        weighted_loss = args.weighted_loss
+
         trainer = TrainModel(
             train_loader=train_loader, 
             val_loader=val_loader, 
@@ -63,7 +69,11 @@ def main():
             batch_size=batch_size, 
             path_previous_model=path_previous_model, 
             full_finetuning=full_finetuning,
-            saving_dir = saving_dir
+            saving_dir = saving_dir,
+            dropout=dropout,
+            modified_model=modified_model,
+            ignore_out_loss=ignore_out_loss,
+            weighted_loss=weighted_loss
         )
 
         config = {
@@ -112,8 +122,7 @@ def __set_argparse():
         help="Batch size for training")
     parser.add_argument(
         "--full_finetuning",
-        type=bool,
-        default=True,
+        action='store_true',
         help="True if you want to re-train all the model's weights. False if you just want to train the classifier weights.")
     
     last_prev_model = None
@@ -129,10 +138,25 @@ def __set_argparse():
         help="Set the relative path to the csv file of the input data you want to work on")
     parser.add_argument(
         "--continue_last_train",
-        type=bool,
-        default=False,
+        action='store_true',
         help="True, automatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
-    
+    parser.add_argument(
+        "--dropout",
+        type=float_between_0_and_1,
+        default=0.1,
+        help="Dropout probability between bert layer and the classifier")
+    parser.add_argument(
+        "--modified_model",
+        action='store_true',
+        help="Uses a modified bert model instead of transformer's one")
+    parser.add_argument(
+        "--ignore_out",
+        action='store_true',
+        help="Ignores out-type labels in the loss calculation")
+    parser.add_argument(
+        "--weighted_loss",
+        action='store_true',
+        help="If true, out-type labels have 4 times less weight than the others in the loss calculation.")
     return(parser)
 
 def float_between_0_and_1(x):

@@ -85,15 +85,33 @@ BERT_INPUTS_DOCSTRING = r"""
     BERT_START_DOCSTRING,
 )
 class BertForTokenClassificationModified(BertPreTrainedModel):
-    def __init__(self, config):
+    def __init__(self, config, config_special):
         super().__init__(config)
+        print("in bert modified")
         self.num_labels = config.num_labels
+        self.ignore_out_loss = config_special['ignore_out_loss']
+        self.weighted_loss = config_special['weighted_loss']
+        self.label2id = config.label2id
 
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
+        if self.weighted_loss:
+            self.list_weight = self.get_weights()
+        else:
+            self.list_weight = None
+        
         self.init_weights()
+    
+    def get_weights(self):
+        weighted_dict = {
+            'O': 0.25/(self.num_labels - 1 + 0.25),
+            'others': 1/(self.num_labels - 1 + 0.25)
+        }
+        list_weight = [weighted_dict['others'] for _ in range(self.num_labels)]
+        list_weight[self.label2id['O']] = weighted_dict['O']
+        list_weight = torch.tensor(list_weight)
 
     def forward(
         self,
@@ -151,7 +169,10 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
 
         outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
         if labels is not None:
-            loss_fct = CrossEntropyLoss()
+            if self.ignore_out_loss:
+                loss_fct = CrossEntropyLoss(ignore_index=self.label2id['O'])
+            else :
+                loss_fct = CrossEntropyLoss(weight=self.list_weight)
             # Only keep active parts of the loss
             if attention_mask is not None:
                 active_loss = attention_mask.view(-1) == 1
@@ -163,9 +184,5 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
             else:
                 loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
             outputs = (loss,) + outputs
-            print("\tIn Model: input size", input_ids.size(),
-              "loss size", loss.size(),
-              "logits", logits.size(),
-              )
 
         return outputs  # (loss), scores, (hidden_states), (attentions)
