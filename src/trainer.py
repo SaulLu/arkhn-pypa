@@ -27,9 +27,11 @@ class TrainModel:
         batch_size=100,
         path_previous_model=None,
         full_finetuning=True,
-        saving_dir = 'data/results/',
-        dropout = 0.1,
-        modified_model=False
+        saving_dir="data/results/",
+        dropout=0.1,
+        modified_model=False,
+        ignore_out_loss=False,
+        weighted_loss=False,
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -44,11 +46,25 @@ class TrainModel:
         self.__val_loader = val_loader
 
         self.saving_dir = Path(saving_dir)
-  
-        config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True, hidden_dropout_prob=dropout)
-        assert unused_kwargs == {}
+
+        config, unused_kwargs = AutoConfig.from_pretrained(
+            pretrained_model_name_or_path=self.pretrained_model,
+            num_labels=len(tag2idx),
+            return_unused_kwargs=True,
+            hidden_dropout_prob=dropout,
+            id2label=idx2tag,
+            label2id=tag2idx,
+        )
+        print(f"config : {config}")
+        config_special = {
+            "ignore_out_loss":ignore_out_loss,
+            "weighted_loss":weighted_loss
+        }
+        print(f"config_special :\n {config_special}")
+
+        assert unused_kwargs == {}, f"Unused kwargs :{unused_kwargs}"
         if modified_model:
-            self.model = BertForTokenClassificationModified(config)
+            self.model = BertForTokenClassificationModified(config, config_special)
         else:
             self.model = AutoModelForTokenClassification.from_config(config)
 
@@ -64,7 +80,7 @@ class TrainModel:
         if path_previous_model:
             self.__resume_training(path_previous_model)
 
-        path_metrics = os.path.join(self.saving_dir,"metrics.csv")
+        path_metrics = os.path.join(self.saving_dir, "metrics.csv")
         with open(path_metrics, "w+") as f:
             writer = csv.writer(f)
             writer.writerow(
@@ -123,7 +139,9 @@ class TrainModel:
                 mask = mask.to(self.device)
                 tags = tags.to(self.device)
 
-                outputs = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
+                outputs = self.model(
+                    input_ids, token_type_ids=None, attention_mask=mask, labels=tags
+                )
                 loss = outputs[0]
                 if torch.cuda.device_count() > 1:
                     loss = loss.mean()
@@ -160,9 +178,7 @@ class TrainModel:
             print(f"Validation accuracy: {eval_accuracy}")
 
             train_pred_tags = [
-                self.idx2tag[p_i]
-                for p in train_predictions
-                for p_i in p
+                self.idx2tag[p_i] for p in train_predictions for p_i in p
             ]
             train_valid_tags = [
                 self.idx2tag[l_ii]
@@ -170,11 +186,7 @@ class TrainModel:
                 for l_i in l
                 for l_ii in l_i
             ]
-            eval_pred_tags = [
-                self.idx2tag[p_i]
-                for p in eval_predictions
-                for p_i in p
-            ]
+            eval_pred_tags = [self.idx2tag[p_i] for p in eval_predictions for p_i in p]
             eval_valid_tags = [
                 self.idx2tag[l_ii]
                 for l in eval_true_labels
@@ -194,25 +206,37 @@ class TrainModel:
 
             curr_epoch_str = str(curr_epoch)
 
-            train_conf_matrix = confusion_matrix(train_valid_tags, train_pred_tags, labels=labels_list)
-            eval_conf_matrix = confusion_matrix(eval_valid_tags, eval_pred_tags, labels=labels_list)
-            generate_confusion_matrix(
-                train_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='train', saving_dir=self.saving_dir
+            train_conf_matrix = confusion_matrix(
+                train_valid_tags, train_pred_tags, labels=labels_list
+            )
+            eval_conf_matrix = confusion_matrix(
+                eval_valid_tags, eval_pred_tags, labels=labels_list
             )
             generate_confusion_matrix(
-                eval_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='eval', saving_dir=self.saving_dir
+                train_conf_matrix,
+                labels_list,
+                curr_epoch=curr_epoch_str,
+                curr_time=curr_time,
+                prefix="train",
+                saving_dir=self.saving_dir,
+            )
+            generate_confusion_matrix(
+                eval_conf_matrix,
+                labels_list,
+                curr_epoch=curr_epoch_str,
+                curr_time=curr_time,
+                prefix="eval",
+                saving_dir=self.saving_dir,
             )
             print(f"Confusion matrix saved")
 
             if curr_epoch % 10 == 0:
                 name_save_model = (
-                    curr_time
-                    + "_test_model"
-                    + "_epoch_"
-                    + curr_epoch_str
-                    + ".pt"
+                    curr_time + "_test_model" + "_epoch_" + curr_epoch_str + ".pt"
                 )
-                path_save_model = os.path.join(self.saving_dir, "intermediate", name_save_model)
+                path_save_model = os.path.join(
+                    self.saving_dir, "intermediate", name_save_model
+                )
                 torch.save(
                     {
                         "epoch": curr_epoch,
@@ -224,7 +248,7 @@ class TrainModel:
                     path_save_model,
                 )
 
-            path_metrics = os.path.join(self.saving_dir,"metrics.csv")
+            path_metrics = os.path.join(self.saving_dir, "metrics.csv")
             with open(path_metrics, "a") as f:
                 writer = csv.writer(f)
                 writer.writerow(
@@ -258,22 +282,23 @@ class TrainModel:
             input_ids, mask, tags = batch
 
             with torch.no_grad():
-                outputs = self.model(input_ids, token_type_ids=None,
-                                  attention_mask=mask, labels=tags)
+                outputs = self.model(
+                    input_ids, token_type_ids=None, attention_mask=mask, labels=tags
+                )
                 tmp_loss, logits = outputs[:2]
                 logits = logits.detach().cpu().numpy()
-                label_ids = tags.to('cpu').numpy()
+                label_ids = tags.to("cpu").numpy()
                 predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
                 true_labels.append(label_ids)
-                
+
                 tmp_accuracy = self.__flat_accuracy(logits, label_ids)
-                
+
                 loss += tmp_loss.mean().item()
                 accuracy += tmp_accuracy
-                
+
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
-                
+
         return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
 
 
