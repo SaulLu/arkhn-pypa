@@ -163,9 +163,9 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
             else:
                 loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
             outputs = (loss,) + outputs
-            print("\tIn Model: input size", input_ids.size(),
-              "loss size", loss.size(),
-              "logits", logits.size(),
-              )
+            #print("\tIn Model: input size", input_ids.size(),
+            #  "loss size", loss.size(),
+            #  "logits", logits.size(),
+            #  )
 
         return outputs  # (loss), scores, (hidden_states), (attentions)

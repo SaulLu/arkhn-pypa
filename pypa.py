@@ -36,6 +36,9 @@ def main():
     full_finetuning = args.full_finetuning
     continue_last_train = args.continue_last_train
 
+    dropout = args.dropout
+    modified_model = args.modified_model
+
     mode = args.mode
 
     dataset = NerDataset(
@@ -63,7 +66,9 @@ def main():
             batch_size=batch_size, 
             path_previous_model=path_previous_model, 
             full_finetuning=full_finetuning,
-            saving_dir = saving_dir
+            saving_dir = saving_dir,
+            dropout=dropout,
+            modified_model=modified_model
         )
 
         config = {
@@ -114,8 +119,7 @@ def __set_argparse():
         "--full_finetuning",
         type=bool,
         default=True,
-        help="True if you want to re-train all the model's weights. False if you just want to train the classifier weights.")
-    
+        help="True if you want to re-train all the model's weights. False if you just want to train the classifier weights.") 
     last_prev_model = None
     parser.add_argument(
         "--path_previous_model",
@@ -132,7 +136,16 @@ def __set_argparse():
         type=bool,
         default=False,
         help="True, automatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
-    
+    parser.add_argument(
+        "--dropout",
+        type=float_between_0_and_1,
+        default=0.0,
+        help="Dropout probability between bert layer and the classifier")
+    parser.add_argument(
+        "--modified_model",
+        type=bool,
+        default=False,
+        help="Uses a modified bert model instead of transformer's one")
     return(parser)
 
 def float_between_0_and_1(x):

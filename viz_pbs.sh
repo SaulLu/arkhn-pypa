@@ -13,4 +13,4 @@ module load anaconda3/5.3.1
 source activate pypa_env
 
 # Run code
-python ./src/utils/visualization.py --model_pathname 'test'
+python ./src/utils/visualization.py --model_pathname '20200328_120259_monologgbiobertv11pubmed_2009'
