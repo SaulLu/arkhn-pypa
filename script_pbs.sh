@@ -1,8 +1,8 @@
 #PBS -S /bin/bash
 #PBS -N biobert_2009_fullfinetuning
 #PBS -P arkhn-3a
-#PBS -l walltime=04:00:00
-#PBS -l select=1:ngpus=1:mem=30gb
+#PBS -l walltime=01:00:00
+#PBS -l select=1:ngpus=1:mem=20gb
 #PBS -o output_pypa.txt
 #PBS -e error_pypa.txt
 #PBS -q gpuq 
