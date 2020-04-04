@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
-from transformers import BertTokenizer
+from transformers import AutoTokenizer
 import os
 
 class NerDataset(Dataset):
@@ -13,7 +13,7 @@ class NerDataset(Dataset):
     def __init__(
         self,
         data_path,
-        encoding="utf-8",
+        encoding="latin1",
         max_len=75,
         pretrained_model="bert-base-uncased",
     ):
@@ -21,7 +21,7 @@ class NerDataset(Dataset):
         
         Attributes:
             data_path {str} -- Path to data file (.csv)
-            encoding {str} -- Data enconding. Defaults to 'utf-8'.
+            encoding {str} -- Data enconding. Defaults to 'latin1'.
             max_len {int} -- Maximal length for the sequences. Defaults to 75.
         """
 
@@ -34,7 +34,7 @@ class NerDataset(Dataset):
         self.tag2idx = {t: i for i, t in enumerate(self.tag_vals)}
         self.idx2tag = {v: k for k, v in self.tag2idx.items()}
 
-        tokenizer = BertTokenizer.from_pretrained(pretrained_model, do_lower_case=True)
+        tokenizer = AutoTokenizer.from_pretrained(pretrained_model, do_lower_case=True)
 
         tokenized_texts = [
             tokenizer.tokenize(sent)
@@ -95,12 +95,12 @@ class SentenceGetter(object):
     Data extractor from .csv file
     """
 
-    def __init__(self, data_path, encoding="utf-8"):
+    def __init__(self, data_path, encoding="latin1"):
         """SentenceGetter constructor
         
         Attributes:
             data_path {str} -- Path to data file (.csv)
-            encoding {str} -- Data enconding. Defaults to 'utf8'
+            encoding {str} -- Data enconding. Defaults to 'latin1'
         """
         self.n_sent = 1
         if os.path.isdir(data_path):
