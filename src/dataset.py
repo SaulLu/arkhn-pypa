@@ -2,6 +2,9 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
+from flair.embeddings import WordEmbeddings, FlairEmbeddings, StackedEmbeddings
+from flair.data import Sentence
+from torch.utils.data.dataset import T_co
 from transformers import AutoTokenizer
 
 
@@ -11,11 +14,11 @@ class NerDataset(Dataset):
     """
 
     def __init__(
-        self,
-        data_path,
-        encoding="latin1",
-        max_len=75,
-        pretrained_model="bert-base-uncased",
+            self,
+            data_path,
+            encoding="latin1",
+            max_len=75,
+            pretrained_model="bert-base-uncased",
     ):
         """NerDataset constructor
         
@@ -68,7 +71,7 @@ class NerDataset(Dataset):
 
         self.data = TensorDataset(self.input_ids, self.attention_masks, self.tags)
 
-        self.len = len(self.labels) # to check
+        self.len = len(self.labels)  # to check
 
     def __getitem__(self, idx):
         """Get the item whose index is idx
@@ -80,7 +83,7 @@ class NerDataset(Dataset):
             {(torch.Tensor, torch.Tensor, torch.Tensor)} -- tuple of tensors corresponding to input_ids, attention_masks and tags
         """
         return self.data[idx]
-    
+
     def __len__(self):
         """Number of elements in the dataset
         
@@ -88,6 +91,75 @@ class NerDataset(Dataset):
             len -- number of elements in the dataset
         """
         return self.len
+
+
+class FlairDataSet(Dataset):
+
+    def __init__(self,
+                 data_path,
+                 encoding="latin1",
+                 ):
+        self.stacked_embeddings = None
+        self.init_emb()
+
+        getter = SentenceGetter(data_path, encoding)
+        tokens = []
+        labels = []
+
+        self.labels = [[s[1] for s in sent] for sent in getter.sentences]
+        self.tag_vals = list(set([l for labels in self.labels for l in labels]))
+        self.tag2idx = {t: i for i, t in enumerate(self.tag_vals)}
+        self.idx2tag = {v: k for k, v in self.tag2idx.items()}
+
+        for i in range(len(getter.sentences)):
+            pre_len, pre = 0, ''
+            if i - 1 >= 0:
+                pre_len = len(getter.sentences[i - 1])
+                pre = ' '.join([s[0] for s in getter.sentences[i - 1]])
+
+            sent_len = len(getter.sentences[i])
+            sent = ' '.join([s[0] for s in getter.sentences[i]])
+
+            next_len, next_s = 0, ''
+            if i + 1 < len(getter.sentences):
+                pre_len = len(getter.sentences[i - 1])
+                pre = ' '.join([s[0] for s in getter.sentences[i - 1]])
+
+            tokens += self.embed_sent(pre, pre_len, sent, sent_len, next_s, next_len)
+            labels += [s[1] for s in getter.sentences[i]]
+
+        self.tags = torch.Tensor([self.tag2idx.get(l) for l in labels])
+        self.tokens = torch.cat(tokens)
+
+        self.data = TensorDataset(self.tokens, self.tags)
+
+        self._len = len(self.labels)  # to check
+
+    def __getitem__(self, index: int) -> T_co:
+        return self.data[index]
+
+    def __len__(self) -> int:
+        return self._len
+
+    def init_emb(self):
+        # init standard GloVe embedding
+        glove_embedding = WordEmbeddings('glove')
+
+        # init Flair forward and backwards embeddings
+        flair_embedding_forward = FlairEmbeddings('news-forward')
+        flair_embedding_backward = FlairEmbeddings('news-backward')
+        # create a StackedEmbedding object that combines glove and forward/backward flair embeddings
+        self.stacked_embeddings = StackedEmbeddings([
+            glove_embedding,
+            flair_embedding_forward,
+            flair_embedding_backward,
+        ])
+
+    def embed_sent(self, pre, pre_len, sent, sent_len, next_s, next_len):
+        s = Sentence(' '.join([pre, sent, next_s]))
+        self.stacked_embeddings.embed(s)
+        assert len(s.tokens) == (pre_len + sent_len + next_len)
+        return [tok.embedding.view(1, -1) for tok in s.tokens[pre_len:(pre_len + sent_len)]]
 
 
 class SentenceGetter(object):
