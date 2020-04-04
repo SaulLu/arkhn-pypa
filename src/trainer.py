@@ -32,6 +32,7 @@ class TrainModel:
         modified_model=False,
         ignore_out_loss=False,
         weighted_loss=False,
+        weight_decay=0,
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -74,7 +75,7 @@ class TrainModel:
 
         self.model.to(self.device)
 
-        self.__optimizer = self.__set_optimizer()
+        self.__optimizer = self.__set_optimizer(weight_decay)
         self.__start_epoch = 0
 
         if path_previous_model:
@@ -101,7 +102,7 @@ class TrainModel:
         self.__optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         self.__start_epoch = checkpoint["epoch"]
 
-    def __set_optimizer(self):
+    def __set_optimizer(self, weight_decay):
         if self.full_finetuning:
             param_optimizer = list(self.model.named_parameters())
             no_decay = ["bias", "gamma", "beta"]
@@ -125,7 +126,7 @@ class TrainModel:
             param_optimizer = list(self.model.classifier.named_parameters())
             optimizer_grouped_parameters = [{"params": [p for n, p in param_optimizer]}]
 
-        return Adam(optimizer_grouped_parameters, lr=3e-5)
+        return Adam(optimizer_grouped_parameters, lr=3e-5, weight_decay=weight_decay)
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
         for curr_epoch in trange(n_epochs, desc="Epoch"):

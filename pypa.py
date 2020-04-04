@@ -29,6 +29,7 @@ def main():
 
     n_epochs = args.n_epochs
     batch_size = args.batch_size
+    weight_decay = args.l2_regularization
 
     data_path = args.data_path
     pretrained_model = args.pretrained_model
@@ -73,7 +74,8 @@ def main():
             dropout=dropout,
             modified_model=modified_model,
             ignore_out_loss=ignore_out_loss,
-            weighted_loss=weighted_loss
+            weighted_loss=weighted_loss,
+            weight_decay=weight_decay
         )
 
         config = {
@@ -157,6 +159,11 @@ def __set_argparse():
         "--weighted_loss",
         action='store_true',
         help="If true, out-type labels have 4 times less weight than the others in the loss calculation.")
+    parser.add_argument(
+        "--l2_regularization",
+        type=float,
+        default=0,
+        help="add L2-regularization with the option 'weight decay' of the optimizer. Give the value of the bias to add to the weights.")
     return(parser)
 
 def float_between_0_and_1(x):
