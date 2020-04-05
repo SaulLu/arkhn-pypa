@@ -24,5 +24,4 @@ python ./pypa.py \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
     --full_finetuning \
-    --ignore_out
     
