@@ -79,7 +79,7 @@ class FlairTrainModel:
         self.__start_epoch = checkpoint["epoch"]
 
     def __set_optimizer(self):
-        return Adam(lr=3e-5)
+        return Adam(params={}, lr=3e-5)
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
         for curr_epoch in trange(n_epochs, desc="Epoch"):
