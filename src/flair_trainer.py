@@ -92,7 +92,7 @@ class FlairTrainModel:
             for batch in self.__train_loader:
 
                 tokens, tags = batch
-                tags = tags.int()
+                tags = tags.long()
                 tokens = tokens.to(self.device)
                 tags = tags.to(self.device)
 

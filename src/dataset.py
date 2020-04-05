@@ -143,6 +143,7 @@ class FlairDataSet(Dataset):
         self.tokens = torch.cat(tokens)
 
         self.data = TensorDataset(self.tokens, self.tags)
+
         torch.save(self.data, emb_path)
 
         self._len = len(self.labels)  # to check
