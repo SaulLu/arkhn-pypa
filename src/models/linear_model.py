@@ -7,6 +7,7 @@ class LinearModel(nn.Module):
     def __init__(self, emb_size, num_classes):
         super(LinearModel, self).__init__()
         self.l1 = nn.Linear(emb_size, num_classes)
+        self.softmax = nn.Softmax()
 
     def forward(self, x):
-        return nn.Softmax(self.l1(x))
+        return self.softmax(self.l1(x))
