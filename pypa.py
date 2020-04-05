@@ -158,7 +158,7 @@ def __set_argparse():
         help="Set to True to use Flair instead of Bert Model"
     )
     parser.add_argument(
-        "reuse_emb",
+        "--reuse_emb",
         type=bool,
         default=True,
         help="For Flair reuse the embedding if we already computed it"
