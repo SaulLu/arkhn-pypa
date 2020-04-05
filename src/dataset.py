@@ -4,7 +4,6 @@ from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
 from flair.embeddings import WordEmbeddings, FlairEmbeddings, StackedEmbeddings
 from flair.data import Sentence
-from torch.utils.data.dataset import T_co
 from transformers import AutoTokenizer
 
 
