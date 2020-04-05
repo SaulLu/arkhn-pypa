@@ -8,9 +8,9 @@ class LinearModel(nn.Module):
 
 
 
-    def __init__(self, num_classes):
+    def __init__(self,emb_size,  num_classes):
         super(LinearModel, self).__init__()
-        self.l1 == nn.Linear(self.stacked_embeddings.embedding_length, num_classes)
+        self.l1 == nn.Linear(emb_size, num_classes)
 
 
 
