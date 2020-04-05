@@ -3,6 +3,7 @@ import time
 import csv
 import os
 from path import Path
+import random
 
 import torch
 from torch import nn
@@ -95,9 +96,13 @@ class TrainModel:
                     "train_loss",
                     "val_loss",
                     "train_accuracy",
+                    "train_accuracy_without_o",
                     "val_accuracy",
+                    "val_accuracy_without_o",
                     "train_f1",
+                    "train_f1_without_o",
                     "val_f1",
+                    "val_f1_without_o",
                 ]
             )
 
@@ -166,45 +171,41 @@ class TrainModel:
             (
                 train_loss,
                 train_accuracy,
+                train_accuracy_without_o,
                 train_predictions,
+                train_predictions_without_o,
                 train_true_labels,
+                train_true_labels_without_o,
+
             ) = self.__compute_loss_and_accuracy(self.__train_loader)
 
             (
                 eval_loss,
                 eval_accuracy,
+                eval_accuracy_without_o,
                 eval_predictions,
+                eval_predictions_without_o,
                 eval_true_labels,
+                eval_true_labels_without_o,
             ) = self.__compute_loss_and_accuracy(self.__val_loader)
 
             print(f"Train loss: {train_loss}")
             print(f"Train accuracy: {train_accuracy}")
+            print(f"Train accuracy without out: {train_accuracy_without_o}")
 
             print(f"Validation loss: {eval_loss}")
             print(f"Validation accuracy: {eval_accuracy}")
+            print(f"Validation accuracy without out: {eval_accuracy_without_o}")
 
-            train_pred_tags = [
-                self.idx2tag[p_i] for p in train_predictions for p_i in p
-            ]
-            train_valid_tags = [
-                self.idx2tag[l_ii]
-                for l in train_true_labels
-                for l_i in l
-                for l_ii in l_i
-            ]
-            eval_pred_tags = [self.idx2tag[p_i] for p in eval_predictions for p_i in p]
-            eval_valid_tags = [
-                self.idx2tag[l_ii]
-                for l in eval_true_labels
-                for l_i in l
-                for l_ii in l_i
-            ]
-
-            train_f1_score = f1_score(train_pred_tags, train_valid_tags)
-            eval_f1_score = f1_score(eval_pred_tags, eval_valid_tags)
+            train_f1_score = f1_score(train_predictions, train_true_labels)
+            eval_f1_score = f1_score(eval_predictions, eval_true_labels)
+            train_f1_score_without_o = f1_score(train_predictions_without_o, train_true_labels_without_o)
+            eval_f1_score_without_o = f1_score(eval_predictions_without_o, eval_true_labels_without_o)            
 
             print(f"Train F1-Score: {train_f1_score}")
             print(f"Validation F1-Score: {eval_f1_score}")
+            print(f"Train F1-Score without out: {train_f1_score_without_o}")
+            print(f"Validation F1-Score without out: {eval_f1_score_without_o}")
 
             labels_list = list(self.tag2idx.keys())
 
@@ -213,10 +214,10 @@ class TrainModel:
             curr_epoch_str = str(curr_epoch)
 
             train_conf_matrix = confusion_matrix(
-                train_valid_tags, train_pred_tags, labels=labels_list
+                train_predictions, train_true_labels, labels=labels_list
             )
             eval_conf_matrix = confusion_matrix(
-                eval_valid_tags, eval_pred_tags, labels=labels_list
+                eval_predictions, eval_true_labels, labels=labels_list
             )
             generate_confusion_matrix(
                 train_conf_matrix,
@@ -263,9 +264,13 @@ class TrainModel:
                         train_loss,
                         eval_loss,
                         train_accuracy,
+                        train_accuracy_without_o,
                         eval_accuracy,
+                        eval_accuracy_without_o,
                         train_f1_score,
+                        train_f1_score_without_o,
                         eval_f1_score,
+                        eval_f1_score_without_o,
                     ]
                 )
 
@@ -275,12 +280,18 @@ class TrainModel:
         pred_flat = np.argmax(preds, axis=2).flatten()
         labels_flat = labels.flatten()
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
+    
+    def __accuracy(self, pred_flat, labels_flat):
+        return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
     def __compute_loss_and_accuracy(self, loader):
 
-        loss, accuracy = 0, 0
+        loss, accuracy, accuracy_without_o = 0, 0, 0
         nb_steps, nb_sentences = 0, 0
-        predictions, true_labels = [], []
+        predictions_flat, true_labels_flat = [], []
+        predictions_without_o, true_labels_without_o = [], []
+
+        compt_out = 0
 
         for batch in loader:
 
@@ -292,20 +303,47 @@ class TrainModel:
                     input_ids, token_type_ids=None, attention_mask=mask, labels=tags
                 )
                 tmp_loss, logits = outputs[:2]
+
                 logits = logits.detach().cpu().numpy()
                 label_ids = tags.to("cpu").numpy()
-                predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
-                true_labels.append(label_ids)
 
-                tmp_accuracy = self.__flat_accuracy(logits, label_ids)
+                logits_flat = np.argmax(logits, axis=2).flatten()
+                label_ids_flat = label_ids.flatten()
+
+                logits_without_o, label_ids_without_o = [], []
+                for indice in range(len(label_ids_flat)):
+                    if label_ids_flat[indice] != self.tag2idx["O"]:
+                        logits_without_o.append(logits_flat[indice])
+                        label_ids_without_o.append(label_ids_flat[indice])
+                    else:
+                        compt_out += 1
+
+                predictions_flat.extend(list(self.idx2tag[l] for l in logits_flat))
+                true_labels_flat.extend(list(self.idx2tag[l] for l in label_ids_flat))
+
+                predictions_without_o.extend(list(self.idx2tag[l] for l in logits_without_o))
+                true_labels_without_o.extend(list(self.idx2tag[l] for l in label_ids_without_o))
+
+                tmp_accuracy_flat = self.__accuracy(logits_flat, label_ids_flat)
 
                 loss += tmp_loss.mean().item()
-                accuracy += tmp_accuracy
+                accuracy += tmp_accuracy_flat
+                accuracy_without_o += self.__accuracy(
+                    logits_without_o, label_ids_without_o
+                )
 
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
 
-        return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
+        return (
+            loss / nb_steps,
+            accuracy / nb_steps,
+            accuracy_without_o / nb_steps,
+            predictions_flat,
+            predictions_without_o,
+            true_labels_flat,
+            true_labels_without_o,
+        )
 
 
 if __name__ == "__main__":
