@@ -20,6 +20,8 @@ source activate pypa_env
 # Run code
 python ./pypa.py \
     --n_epochs 101 \
+    --full_finetuning \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
+    --weighted_loss \
     
