@@ -101,13 +101,6 @@ class FlairDataSet(Dataset):
                  reuse_emb=True
                  ):
         emb_path = os.path.join(os.path.dirname(data_path), "last_computed_dataset.pt")
-        if reuse_emb and os.path.isfile(emb_path):
-            self.data = torch.load(emb_path)
-            self._len = self.data.__len__()
-            return
-
-        self.stacked_embeddings = None
-        self.init_emb()
 
         getter = SentenceGetter(data_path, encoding)
         tokens = []
@@ -117,6 +110,14 @@ class FlairDataSet(Dataset):
         self.tag_vals = list(set([l for labels in self.labels for l in labels]))
         self.tag2idx = {t: i for i, t in enumerate(self.tag_vals)}
         self.idx2tag = {v: k for k, v in self.tag2idx.items()}
+
+        if reuse_emb and os.path.isfile(emb_path):
+            self.data = torch.load(emb_path)
+            self._len = self.data.__len__()
+            return
+
+        self.stacked_embeddings = None
+        self.init_emb()
 
         for i in range(len(getter.sentences)):
             pre_len, pre = 0, ''
@@ -139,7 +140,7 @@ class FlairDataSet(Dataset):
         self.tokens = torch.cat(tokens)
 
         self.data = TensorDataset(self.tokens, self.tags)
-        torch.save(self.data,emb_path)
+        torch.save(self.data, emb_path)
 
         self._len = len(self.labels)  # to check
 
