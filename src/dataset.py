@@ -7,7 +7,7 @@ from flair.embeddings import WordEmbeddings, FlairEmbeddings, StackedEmbeddings
 from flair.data import Sentence
 import flair
 from transformers import AutoTokenizer
-
+import os
 
 class NerDataset(Dataset):
     """
@@ -189,7 +189,17 @@ class SentenceGetter(object):
             encoding {str} -- Data enconding. Defaults to 'latin1'
         """
         self.n_sent = 1
-        self.data = pd.read_csv(data_path, encoding=encoding).fillna(method="ffill")
+        if os.path.isdir(data_path):
+            frames = []
+            for name in os.listdir(data_path):
+                frames.append(
+                    pd.read_csv(os.path.join(data_path, name),
+                                encoding=encoding, engine='c').fillna(method="ffill")
+                )
+            self.data = pd.concat(frames)
+        else:
+            self.data = pd.read_csv(
+                data_path, encoding=encoding).fillna(method="ffill")
         self.empty = False
         agg_func = lambda s: [
             (w, t) for w, t in zip(s["word"].values.tolist(), s["tag"].values.tolist())

@@ -3,6 +3,7 @@ import time
 import csv
 import os
 from path import Path
+import random
 
 import torch
 from torch import nn
@@ -13,6 +14,7 @@ from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
+from src.models.bert_model_bis import BertForTokenClassificationModified
 
 
 class TrainModel:
@@ -26,8 +28,18 @@ class TrainModel:
         batch_size=100,
         path_previous_model=None,
         full_finetuning=True,
-        saving_dir = 'data/results/'
+        saving_dir="data/results/",
+        dropout=0.1,
+        modified_model=False,
+        ignore_out_loss=False,
+        weighted_loss=False,
+        weight_decay=0,
     ):
+        random.seed(42)
+        np.random.seed(42)
+        torch.manual_seed(42)
+        torch.cuda.manual_seed_all(42)
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.batch_size = batch_size
@@ -41,23 +53,41 @@ class TrainModel:
         self.__val_loader = val_loader
 
         self.saving_dir = Path(saving_dir)
-  
-        config, unused_kwargs = AutoConfig.from_pretrained(pretrained_model_name_or_path=self.pretrained_model, num_labels=len(tag2idx), return_unused_kwargs=True)
-        assert unused_kwargs == {}
-        self.model = AutoModelForTokenClassification.from_config(config)
+
+        config, unused_kwargs = AutoConfig.from_pretrained(
+            pretrained_model_name_or_path=self.pretrained_model,
+            num_labels=len(tag2idx),
+            return_unused_kwargs=True,
+            hidden_dropout_prob=dropout,
+            id2label=idx2tag,
+            label2id=tag2idx,
+        )
+        print(f"config : {config}")
+        config_special = {
+            "ignore_out_loss": ignore_out_loss,
+            "weighted_loss": weighted_loss,
+        }
+        print(f"config_special :\n {config_special}")
+
+        assert unused_kwargs == {}, f"Unused kwargs :{unused_kwargs}"
+        if modified_model:
+            self.model = BertForTokenClassificationModified(config, config_special)
+        else:
+            self.model = AutoModelForTokenClassification.from_config(config)
+
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             self.model = nn.DataParallel(self.model)
 
         self.model.to(self.device)
 
-        self.__optimizer = self.__set_optimizer()
+        self.__optimizer = self.__set_optimizer(weight_decay)
         self.__start_epoch = 0
 
         if path_previous_model:
             self.__resume_training(path_previous_model)
 
-        path_metrics = os.path.join(self.saving_dir,"metrics.csv")
+        path_metrics = os.path.join(self.saving_dir, "metrics.csv")
         with open(path_metrics, "w+") as f:
             writer = csv.writer(f)
             writer.writerow(
@@ -66,9 +96,13 @@ class TrainModel:
                     "train_loss",
                     "val_loss",
                     "train_accuracy",
+                    "train_accuracy_without_o",
                     "val_accuracy",
+                    "val_accuracy_without_o",
                     "train_f1",
+                    "train_f1_without_o",
                     "val_f1",
+                    "val_f1_without_o",
                 ]
             )
 
@@ -78,7 +112,7 @@ class TrainModel:
         self.__optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         self.__start_epoch = checkpoint["epoch"]
 
-    def __set_optimizer(self):
+    def __set_optimizer(self, weight_decay):
         if self.full_finetuning:
             param_optimizer = list(self.model.named_parameters())
             no_decay = ["bias", "gamma", "beta"]
@@ -102,7 +136,7 @@ class TrainModel:
             param_optimizer = list(self.model.classifier.named_parameters())
             optimizer_grouped_parameters = [{"params": [p for n, p in param_optimizer]}]
 
-        return Adam(optimizer_grouped_parameters, lr=3e-5)
+        return Adam(optimizer_grouped_parameters, lr=3e-5, weight_decay=weight_decay)
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
         for curr_epoch in trange(n_epochs, desc="Epoch"):
@@ -116,7 +150,9 @@ class TrainModel:
                 mask = mask.to(self.device)
                 tags = tags.to(self.device)
 
-                outputs = self.model(input_ids, token_type_ids=None, attention_mask=mask, labels=tags)
+                outputs = self.model(
+                    input_ids, token_type_ids=None, attention_mask=mask, labels=tags
+                )
                 loss = outputs[0]
                 if torch.cuda.device_count() > 1:
                     loss = loss.mean()
@@ -135,51 +171,41 @@ class TrainModel:
             (
                 train_loss,
                 train_accuracy,
+                train_accuracy_without_o,
                 train_predictions,
+                train_predictions_without_o,
                 train_true_labels,
+                train_true_labels_without_o,
+
             ) = self.__compute_loss_and_accuracy(self.__train_loader)
 
             (
                 eval_loss,
                 eval_accuracy,
+                eval_accuracy_without_o,
                 eval_predictions,
+                eval_predictions_without_o,
                 eval_true_labels,
+                eval_true_labels_without_o,
             ) = self.__compute_loss_and_accuracy(self.__val_loader)
 
             print(f"Train loss: {train_loss}")
             print(f"Train accuracy: {train_accuracy}")
+            print(f"Train accuracy without out: {train_accuracy_without_o}")
 
             print(f"Validation loss: {eval_loss}")
             print(f"Validation accuracy: {eval_accuracy}")
+            print(f"Validation accuracy without out: {eval_accuracy_without_o}")
 
-            train_pred_tags = [
-                self.idx2tag[p_i]
-                for p in train_predictions
-                for p_i in p
-            ]
-            train_valid_tags = [
-                self.idx2tag[l_ii]
-                for l in train_true_labels
-                for l_i in l
-                for l_ii in l_i
-            ]
-            eval_pred_tags = [
-                self.idx2tag[p_i]
-                for p in eval_predictions
-                for p_i in p
-            ]
-            eval_valid_tags = [
-                self.idx2tag[l_ii]
-                for l in eval_true_labels
-                for l_i in l
-                for l_ii in l_i
-            ]
-
-            train_f1_score = f1_score(train_pred_tags, train_valid_tags)
-            eval_f1_score = f1_score(eval_pred_tags, eval_valid_tags)
+            train_f1_score = f1_score(train_predictions, train_true_labels)
+            eval_f1_score = f1_score(eval_predictions, eval_true_labels)
+            train_f1_score_without_o = f1_score(train_predictions_without_o, train_true_labels_without_o)
+            eval_f1_score_without_o = f1_score(eval_predictions_without_o, eval_true_labels_without_o)            
 
             print(f"Train F1-Score: {train_f1_score}")
             print(f"Validation F1-Score: {eval_f1_score}")
+            print(f"Train F1-Score without out: {train_f1_score_without_o}")
+            print(f"Validation F1-Score without out: {eval_f1_score_without_o}")
 
             labels_list = list(self.tag2idx.keys())
 
@@ -187,25 +213,37 @@ class TrainModel:
 
             curr_epoch_str = str(curr_epoch)
 
-            train_conf_matrix = confusion_matrix(train_valid_tags, train_pred_tags, labels=labels_list)
-            eval_conf_matrix = confusion_matrix(eval_valid_tags, eval_pred_tags, labels=labels_list)
-            generate_confusion_matrix(
-                train_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='train', saving_dir=self.saving_dir
+            train_conf_matrix = confusion_matrix(
+                train_predictions, train_true_labels, labels=labels_list
+            )
+            eval_conf_matrix = confusion_matrix(
+                eval_predictions, eval_true_labels, labels=labels_list
             )
             generate_confusion_matrix(
-                eval_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='eval', saving_dir=self.saving_dir
+                train_conf_matrix,
+                labels_list,
+                curr_epoch=curr_epoch_str,
+                curr_time=curr_time,
+                prefix="train",
+                saving_dir=self.saving_dir,
+            )
+            generate_confusion_matrix(
+                eval_conf_matrix,
+                labels_list,
+                curr_epoch=curr_epoch_str,
+                curr_time=curr_time,
+                prefix="eval",
+                saving_dir=self.saving_dir,
             )
             print(f"Confusion matrix saved")
 
             if curr_epoch % 10 == 0:
                 name_save_model = (
-                    curr_time
-                    + "_test_model"
-                    + "_epoch_"
-                    + curr_epoch_str
-                    + ".pt"
+                    curr_time + "_test_model" + "_epoch_" + curr_epoch_str + ".pt"
                 )
-                path_save_model = os.path.join(self.saving_dir, "intermediate", name_save_model)
+                path_save_model = os.path.join(
+                    self.saving_dir, "intermediate", name_save_model
+                )
                 torch.save(
                     {
                         "epoch": curr_epoch,
@@ -217,7 +255,7 @@ class TrainModel:
                     path_save_model,
                 )
 
-            path_metrics = os.path.join(self.saving_dir,"metrics.csv")
+            path_metrics = os.path.join(self.saving_dir, "metrics.csv")
             with open(path_metrics, "a") as f:
                 writer = csv.writer(f)
                 writer.writerow(
@@ -226,9 +264,13 @@ class TrainModel:
                         train_loss,
                         eval_loss,
                         train_accuracy,
+                        train_accuracy_without_o,
                         eval_accuracy,
+                        eval_accuracy_without_o,
                         train_f1_score,
+                        train_f1_score_without_o,
                         eval_f1_score,
+                        eval_f1_score_without_o,
                     ]
                 )
 
@@ -238,12 +280,18 @@ class TrainModel:
         pred_flat = np.argmax(preds, axis=2).flatten()
         labels_flat = labels.flatten()
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
+    
+    def __accuracy(self, pred_flat, labels_flat):
+        return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
     def __compute_loss_and_accuracy(self, loader):
 
-        loss, accuracy = 0, 0
+        loss, accuracy, accuracy_without_o = 0, 0, 0
         nb_steps, nb_sentences = 0, 0
-        predictions, true_labels = [], []
+        predictions_flat, true_labels_flat = [], []
+        predictions_without_o, true_labels_without_o = [], []
+
+        compt_out = 0
 
         for batch in loader:
 
@@ -251,23 +299,51 @@ class TrainModel:
             input_ids, mask, tags = batch
 
             with torch.no_grad():
-                outputs = self.model(input_ids, token_type_ids=None,
-                                  attention_mask=mask, labels=tags)
+                outputs = self.model(
+                    input_ids, token_type_ids=None, attention_mask=mask, labels=tags
+                )
                 tmp_loss, logits = outputs[:2]
+
                 logits = logits.detach().cpu().numpy()
-                label_ids = tags.to('cpu').numpy()
-                predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
-                true_labels.append(label_ids)
-                
-                tmp_accuracy = self.__flat_accuracy(logits, label_ids)
-                
+                label_ids = tags.to("cpu").numpy()
+
+                logits_flat = np.argmax(logits, axis=2).flatten()
+                label_ids_flat = label_ids.flatten()
+
+                logits_without_o, label_ids_without_o = [], []
+                for indice in range(len(label_ids_flat)):
+                    if label_ids_flat[indice] != self.tag2idx["O"]:
+                        logits_without_o.append(logits_flat[indice])
+                        label_ids_without_o.append(label_ids_flat[indice])
+                    else:
+                        compt_out += 1
+
+                predictions_flat.extend(list(self.idx2tag[l] for l in logits_flat))
+                true_labels_flat.extend(list(self.idx2tag[l] for l in label_ids_flat))
+
+                predictions_without_o.extend(list(self.idx2tag[l] for l in logits_without_o))
+                true_labels_without_o.extend(list(self.idx2tag[l] for l in label_ids_without_o))
+
+                tmp_accuracy_flat = self.__accuracy(logits_flat, label_ids_flat)
+
                 loss += tmp_loss.mean().item()
-                accuracy += tmp_accuracy
-                
+                accuracy += tmp_accuracy_flat
+                accuracy_without_o += self.__accuracy(
+                    logits_without_o, label_ids_without_o
+                )
+
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
-                
-        return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
+
+        return (
+            loss / nb_steps,
+            accuracy / nb_steps,
+            accuracy_without_o / nb_steps,
+            predictions_flat,
+            predictions_without_o,
+            true_labels_flat,
+            true_labels_without_o,
+        )
 
 
 if __name__ == "__main__":
