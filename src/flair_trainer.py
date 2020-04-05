@@ -211,7 +211,7 @@ class FlairTrainModel:
         self.__start_epoch = self.__start_epoch + n_epochs
 
     def __flat_accuracy(self, preds, labels):
-        pred_flat = np.argmax(preds, axis=2).flatten()
+        pred_flat = np.argmax(preds, axis=1).flatten()
         labels_flat = labels.flatten()
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
@@ -230,7 +230,7 @@ class FlairTrainModel:
 
                 outputs = outputs.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
-                predictions.extend([list(p) for p in np.argmax(outputs, axis=2)])
+                predictions.extend([list(p) for p in np.argmax(outputs, axis=1)])
                 true_labels.append(label_ids)
 
                 tmp_accuracy = self.__flat_accuracy(outputs, label_ids)
