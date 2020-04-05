@@ -224,6 +224,7 @@ class FlairTrainModel:
             for batch in loader:
                 batch = tuple(t.to(self.device) for t in batch)
                 tokens, tags = batch
+                tags = tags.long()
                 outputs = self.model(tokens)
                 tmp_loss = self.criterion(outputs,tags)
 
