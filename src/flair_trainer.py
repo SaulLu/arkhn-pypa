@@ -19,7 +19,7 @@ from src.models.linear_model import  LinearModel
 class FlairTrainModel:
     def __init__(
             self,
-            train_loader,
+            train_loader : DataLoader,
             val_loader,
             tag2idx,
             idx2tag,
@@ -35,6 +35,7 @@ class FlairTrainModel:
         self.idx2tag = idx2tag
 
         self.__train_loader = train_loader
+
         self.__val_loader = val_loader
 
         self.saving_dir = Path(saving_dir)
@@ -82,13 +83,16 @@ class FlairTrainModel:
         return Adam(params=self.model.parameters(), lr=3e-5)
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
+
         for curr_epoch in trange(n_epochs, desc="Epoch"):
+
             curr_epoch = self.__start_epoch + curr_epoch
             self.model.train()
 
             for batch in self.__train_loader:
 
                 tokens, tags = batch
+                tags = tags.int()
                 tokens = tokens.to(self.device)
                 tags = tags.to(self.device)
 
