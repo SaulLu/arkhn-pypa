@@ -34,6 +34,11 @@ class TrainModel:
         weighted_loss=False,
         weight_decay=0,
     ):
+        random.seed(42)
+        np.random.seed(42)
+        torch.manual_seed(42)
+        torch.cuda.manual_seed_all(42)
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.batch_size = batch_size
