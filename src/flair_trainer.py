@@ -66,7 +66,7 @@ class FlairTrainModel:
             )
 
     def compute_w(self, train_loader : DataLoader, num_classes):
-        _, targets = train_loader.dataset
+        _, targets = train_loader.dataset.data.tensors
         t = targets.numpy()
         freq = np.bincount(t)
         return torch.Tensor(1 - (freq/freq.sum()))
