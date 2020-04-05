@@ -134,7 +134,7 @@ class FlairDataSet(Dataset):
 
         self._len = len(self.labels)  # to check
 
-    def __getitem__(self, index: int) -> T_co:
+    def __getitem__(self, index: int):
         return self.data[index]
 
     def __len__(self) -> int:
