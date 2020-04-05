@@ -39,7 +39,7 @@ class FlairTrainModel:
 
         self.saving_dir = Path(saving_dir)
 
-        self.model = LinearModel(train_loader.dataset.tensors[0].shape[-1], len(self.tag2idx))
+        self.model = LinearModel(train_loader.dataset.stacked_embeddings.embedding_length, len(self.tag2idx))
         self.model.to(self.device)
 
         self.__optimizer = self.__set_optimizer()

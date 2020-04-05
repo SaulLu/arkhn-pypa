@@ -110,6 +110,8 @@ class FlairDataSet(Dataset):
         self.tag_vals = list(set([l for labels in self.labels for l in labels]))
         self.tag2idx = {t: i for i, t in enumerate(self.tag_vals)}
         self.idx2tag = {v: k for k, v in self.tag2idx.items()}
+        self.stacked_embeddings = None
+        self.init_emb()
 
         if reuse_emb and os.path.isfile(emb_path):
             self.data = torch.load(emb_path)
