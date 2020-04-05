@@ -63,8 +63,8 @@ class TrainModel:
         )
         print(f"config : {config}")
         config_special = {
-            "ignore_out_loss":ignore_out_loss,
-            "weighted_loss":weighted_loss
+            "ignore_out_loss": ignore_out_loss,
+            "weighted_loss": weighted_loss,
         }
         print(f"config_special :\n {config_special}")
 
