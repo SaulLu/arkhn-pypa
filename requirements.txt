@@ -13,16 +13,3 @@ scikit_learn==0.22.2.post1
 transformers==2.5.1
 tensorflow==1.15.0 # python 3.7.6 needed for this version
 
-# seqeval==0.0.12
-# seaborn==0.9.0
-# Keras==2.3.1
-# torch==1.4.0
-# # pytorch_pretrained_bert==0.6.2
-# transformers==2.5.1
-# matplotlib==3.1.0
-# numpy==1.17.2
-# tqdm==4.36.1
-# pandas==0.25.1
-# scikit_learn==0.22.2.post1
-# tensorflow==1.15.0 # python 3.7.6 needed for this version
-# path==13.1.0
