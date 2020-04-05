@@ -120,7 +120,7 @@ def __set_argparse():
     parser.add_argument(
         "--batch_size",
         type=int,
-        default=100,
+        default=50,
         help="Batch size for training")
     parser.add_argument(
         "--full_finetuning",
