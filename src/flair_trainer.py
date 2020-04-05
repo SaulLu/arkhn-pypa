@@ -127,26 +127,22 @@ class FlairTrainModel:
             print(f"Validation accuracy: {eval_accuracy}")
 
             train_pred_tags = [
-                self.idx2tag[p_i]
+                self.idx2tag[p]
                 for p in train_predictions
-                for p_i in p
+
             ]
             train_valid_tags = [
-                self.idx2tag[l_ii]
+                self.idx2tag[l]
                 for l in train_true_labels
-                for l_i in l
-                for l_ii in l_i
+
             ]
             eval_pred_tags = [
-                self.idx2tag[p_i]
+                self.idx2tag[p]
                 for p in eval_predictions
-                for p_i in p
             ]
             eval_valid_tags = [
-                self.idx2tag[l_ii]
+                self.idx2tag[l]
                 for l in eval_true_labels
-                for l_i in l
-                for l_ii in l_i
             ]
 
             train_f1_score = f1_score(train_pred_tags, train_valid_tags)
@@ -231,7 +227,7 @@ class FlairTrainModel:
                 outputs = outputs.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
                 predictions += np.argmax(outputs, axis=1).tolist()
-                true_labels.append(label_ids)
+                true_labels += label_ids.tolist()
 
                 tmp_accuracy = self.__flat_accuracy(outputs, label_ids)
 
