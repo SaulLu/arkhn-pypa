@@ -14,10 +14,12 @@ cd $PBS_O_WORKDIR
 module load anaconda3/5.3.1
 source activate pypa_env
 
-pip freeze | grep -v -f requirements.txt - | xargs pip uninstall -y
-pip install -r requirements.txt --upgrade --no-warn-already-satisfied
+## pip freeze | grep -v -f requirements.txt - | xargs pip uninstall -y
+## pip install -r requirements.txt --upgrade --no-warn-already-satisfied
 
 # Run code
-python ./pypa.py --n_epochs 101 \
+python ./pypa.py \
+    --n_epochs 101 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
-    --modified_model False
+    --modified_model \
+    
