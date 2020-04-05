@@ -27,7 +27,7 @@ class FlairTrainModel:
             path_previous_model=None,
             saving_dir='data/results/'
     ):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
 
         self.batch_size = batch_size
 
