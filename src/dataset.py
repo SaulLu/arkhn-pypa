@@ -5,6 +5,7 @@ from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
 from flair.embeddings import WordEmbeddings, FlairEmbeddings, StackedEmbeddings
 from flair.data import Sentence
+import flair
 from transformers import AutoTokenizer
 
 
@@ -154,6 +155,7 @@ class FlairDataSet(Dataset):
 
     def init_emb(self):
         # init standard GloVe embedding
+        flair.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         glove_embedding = WordEmbeddings('glove')
 
         # init Flair forward and backwards embeddings
