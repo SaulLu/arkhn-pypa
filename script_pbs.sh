@@ -23,5 +23,5 @@ python ./pypa.py \
     --n_epochs 101 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
-    --batch_size 1000
+    --batch_size 500
     
