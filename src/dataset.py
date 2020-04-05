@@ -1,5 +1,6 @@
 import pandas as pd
 import torch
+import os
 from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
 from flair.embeddings import WordEmbeddings, FlairEmbeddings, StackedEmbeddings
@@ -97,7 +98,14 @@ class FlairDataSet(Dataset):
     def __init__(self,
                  data_path,
                  encoding="latin1",
+                 reuse_emb=True
                  ):
+        emb_path = os.path.join(os.path.dirname(data_path), "last_computed_dataset.pt")
+        if reuse_emb and os.path.isfile(emb_path):
+            self.data = torch.load(emb_path)
+            self._len = self.data.__len__()
+            return
+
         self.stacked_embeddings = None
         self.init_emb()
 
@@ -131,6 +139,7 @@ class FlairDataSet(Dataset):
         self.tokens = torch.cat(tokens)
 
         self.data = TensorDataset(self.tokens, self.tags)
+        torch.save(self.data,emb_path)
 
         self._len = len(self.labels)  # to check
 

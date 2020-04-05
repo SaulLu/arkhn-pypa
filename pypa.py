@@ -38,6 +38,7 @@ def main():
     full_finetuning = args.full_finetuning
     continue_last_train = args.continue_last_train
     flair = args.flair
+    reuse_emb = args.reuse_emb
 
     mode = args.mode
     if not flair:
@@ -50,7 +51,8 @@ def main():
     else:
         dataset = FlairDataSet(
             data_path=data_path,
-            encoding="latin1"
+            encoding="latin1",
+            reuse_emb=reuse_emb
         )
 
     train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
@@ -154,6 +156,12 @@ def __set_argparse():
         type=bool,
         default=False,
         help="Set to True to use Flair instead of Bert Model"
+    )
+    parser.add_argument(
+        "reuse_emb",
+        type=bool,
+        default=True,
+        help="For Flair reuse the embedding if we already computed it"
     )
     
     return(parser)
