@@ -155,7 +155,7 @@ class FlairDataSet(Dataset):
 
     def init_emb(self):
         # init standard GloVe embedding
-        flair.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        flair.device = torch.device("cpu")
         glove_embedding = WordEmbeddings('glove')
 
         # init Flair forward and backwards embeddings
