@@ -193,7 +193,7 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
             weighted_dict[k] = 1 - np.sum( active_labels_array== v)/num_active_labels
         print(f"weighted_dict: {weighted_dict}")
 
-        weighted_dict[self.label2id['O']] = weighted_dict[self.label2id['0']] / 10.
+        weighted_dict[self.label2id['O']] = weighted_dict[self.label2id['O']] / 10.
 
         list_weight = [weighted_dict[k] for k in self.label2id.keys()]
         list_weight = list_weight / sum(list_weight)
