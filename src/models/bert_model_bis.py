@@ -19,6 +19,7 @@
 import torch
 from torch import nn
 from torch.nn import CrossEntropyLoss
+import numpy as np
 
 from transformers import (
     BertModel,
@@ -97,21 +98,11 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
-        if self.weighted_loss:
-            self.list_weight = self.get_weights()
-        else:
-            self.list_weight = None
+        self.list_weight = None
         
+        self.ignore_index = -100
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.init_weights()
-    
-    def get_weights(self):
-        weighted_dict = {
-            'O': 0.25/(self.num_labels - 1 + 0.25),
-            'others': 1/(self.num_labels - 1 + 0.25)
-        }
-        list_weight = [weighted_dict['others'] for _ in range(self.num_labels)]
-        list_weight[self.label2id['O']] = weighted_dict['O']
-        list_weight = torch.tensor(list_weight)
 
     def forward(
         self,
@@ -170,19 +161,41 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
         if labels is not None:
             if self.ignore_out_loss:
-                loss_fct = CrossEntropyLoss(ignore_index=self.label2id['O'])
-            else :
-                loss_fct = CrossEntropyLoss(weight=self.list_weight)
+                self.ignore_index=self.label2id['O']
+            
             # Only keep active parts of the loss
             if attention_mask is not None:
                 active_loss = attention_mask.view(-1) == 1
                 active_logits = logits.view(-1, self.num_labels)
                 active_labels = torch.where(
-                    active_loss, labels.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels)
+                    active_loss, labels.view(-1), torch.tensor(self.ignore_index).type_as(labels)
                 )
-                loss = loss_fct(active_logits, active_labels)
             else:
-                loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                active_logits = logits.view(-1, self.num_labels)
+                active_labels = labels.view(-1)
+            
+            active_labels_array = active_labels.to("cpu").numpy()
+            
+            if self.weighted_loss:
+                self.list_weight = self.get_weights(active_labels_array)
+
+            loss_fct = CrossEntropyLoss(weight=self.list_weight, ignore_index=self.ignore_index)
+            
+            loss = loss_fct(active_logits, active_labels)
+
             outputs = (loss,) + outputs
 
         return outputs  # (loss), scores, (hidden_states), (attentions)
+
+    def get_weights(self, active_labels_array):
+        num_active_labels = np.sum( active_labels_array!= self.ignore_index)
+        weighted_dict = dict()
+        for k,v in self.label2id.items():
+            weighted_dict[k] = 1 - np.sum( active_labels_array== v)/num_active_labels
+
+        weighted_dict['O'] = weighted_dict['O'] / 10.
+
+        list_weight = [weighted_dict[k] for k in self.label2id.keys()]
+        list_weight = list_weight / sum(list_weight)
+        list_weight = torch.tensor(list_weight).to(self.device).float()
+        return list_weight

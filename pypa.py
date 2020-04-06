@@ -69,21 +69,29 @@ def main():
         
         saving_dir = set_saving_dir(path_previous_model, pretrained_model, data_path)
 
+        continue_csv = (continue_last_train or path_previous_model)
+
         ignore_out_loss = args.ignore_out
         weighted_loss = args.weighted_loss
 
         if not flair:
             trainer = TrainModel(
-                train_loader=train_loader,
-                val_loader=val_loader,
-                tag2idx=dataset.tag2idx,
-                idx2tag=dataset.idx2tag,
-                pretrained_model=pretrained_model,
-                batch_size=batch_size,
-                path_previous_model=path_previous_model,
-                full_finetuning=full_finetuning,
-                saving_dir = saving_dir
-            )
+	            train_loader=train_loader, 
+	            val_loader=val_loader, 
+	            tag2idx=dataset.tag2idx, 
+	            idx2tag=dataset.idx2tag, 
+	            pretrained_model=pretrained_model, 
+	            batch_size=batch_size, 
+	            path_previous_model=path_previous_model, 
+	            full_finetuning=full_finetuning,
+	            saving_dir = saving_dir,
+	            dropout=dropout,
+	            modified_model=modified_model,
+	            ignore_out_loss=ignore_out_loss,
+	            weighted_loss=weighted_loss,
+	            weight_decay=weight_decay,
+	            continue_csv=continue_csv,
+	        )
         else:
             trainer = FlairTrainModel(
                 train_loader=train_loader,
