@@ -19,6 +19,7 @@
 import torch
 from torch import nn
 from torch.nn import CrossEntropyLoss
+import numpy as np
 
 from transformers import (
     BertModel,
@@ -181,7 +182,7 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
                     active_loss, labels.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels)
                 )
                 active_labels_array = active_labels.to("cpu").numpy()
-                out_labels = np.sum(active_labels_array=self.label2id['O']])
+                out_labels = np.sum(active_labels_array==self.label2id['O'])
                 print(f"active_labels_array: {active_labels_array.shape[0]}")
                 print(f"out_labels: {out_labels}")
 
