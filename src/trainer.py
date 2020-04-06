@@ -239,7 +239,7 @@ class TrainModel:
             )
             print(f"Confusion matrix saved")
 
-            if curr_epoch % 10 == 0:
+            if curr_epoch % 10 == 0 and curr_epoch!=0:
                 name_save_model = (
                     curr_time + "_test_model" + "_epoch_" + curr_epoch_str + ".pt"
                 )
@@ -329,7 +329,7 @@ class TrainModel:
                 
                 logits_without_o = np.array(logits_without_o)
                 label_ids_without_o = np.array(label_ids_without_o)
-                
+
                 num_same_flat_without = np.sum(logits_without_o == label_ids_without_o)
 
                 print(f"num_same_flat: {num_same_flat_without}")
