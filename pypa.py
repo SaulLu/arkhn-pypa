@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 from collections import Counter
 
+import torch
 from torch.utils.data import DataLoader, RandomSampler
 from torch.utils.data.sampler import SubsetRandomSampler
 
