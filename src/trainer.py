@@ -312,12 +312,12 @@ class TrainModel:
                 logits_flat = np.argmax(logits, axis=2).flatten()
                 label_ids_flat = label_ids.flatten()
 
-                print(f"logits_flat size: {logits_flat.shape}")
-                print(f"label_ids_flat size: {label_ids_flat.shape}")
+                # print(f"logits_flat size: {logits_flat.shape}")
+                # print(f"label_ids_flat size: {label_ids_flat.shape}")
 
                 num_same_flat = np.sum(logits_flat == label_ids_flat)
 
-                print(f"num_same_flat: {num_same_flat}")
+                # print(f"num_same_flat: {num_same_flat}")
 
                 logits_without_o, label_ids_without_o = [], []
                 for indice in range(len(label_ids_flat)):
@@ -332,7 +332,7 @@ class TrainModel:
 
                 num_same_flat_without = np.sum(logits_without_o == label_ids_without_o)
 
-                print(f"num_same_flat: {num_same_flat_without}")
+                # print(f"num_same_flat: {num_same_flat_without}")
                 
                 predictions_flat.extend(list(self.idx2tag[l] for l in logits_flat))
                 true_labels_flat.extend(list(self.idx2tag[l] for l in label_ids_flat))
@@ -348,8 +348,8 @@ class TrainModel:
                     logits_without_o, label_ids_without_o
                 )
 
-                print(f"accuracy: {accuracy}")
-                print(f"accuracy_without_o: {accuracy_without_o}")
+                # print(f"accuracy: {accuracy}")
+                # print(f"accuracy_without_o: {accuracy_without_o}")
 
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
