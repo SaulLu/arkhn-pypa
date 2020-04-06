@@ -182,7 +182,8 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
                 active_labels = torch.where(
                     active_loss, labels.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels)
                 )
-                active_labels_array = np.sum(active_labels.to("cpu").numpy()!= self.ignore_index)
+                active_labels_array = active_labels.to("cpu").numpy()
+                num_active_labels = np.sum( active_labels_array!= self.ignore_index)
                 out_labels = np.sum(active_labels_array==self.label2id['O'])
                 print(f"active_labels_array: {active_labels_array}")
                 print(f"out_labels: {out_labels}")
