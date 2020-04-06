@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+from collections import Counter
 
 from torch.utils.data import DataLoader, RandomSampler
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -60,7 +61,7 @@ def main():
             reuse_emb=reuse_emb
         )
 
-    train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
+    train_loader, val_loader, test_loader, weights_dict = __dataloader(dataset, val_size, test_size, batch_size)
 
     if mode == 'train':
         if continue_last_train:
@@ -91,6 +92,7 @@ def main():
 	            weighted_loss=weighted_loss,
 	            weight_decay=weight_decay,
 	            continue_csv=continue_csv,
+                weights_dict=weights_dict,
 	        )
         else:
             trainer = FlairTrainModel(
@@ -181,8 +183,10 @@ def __set_argparse():
         help="Ignores out-type labels in the loss calculation")
     parser.add_argument(
         "--weighted_loss",
-        action='store_true',
-        help="If true, out-type labels have 4 times less weight than the others in the loss calculation.")
+        type=str,
+        choices=['batch','global'],
+        default=None,
+        help="XXXXXXXXXXXXX")
     parser.add_argument(
         "--l2_regularization",
         type=float,
@@ -227,6 +231,15 @@ def __dataloader(dataset, val_size, test_size, batch_size):
     valid_sampler = SubsetRandomSampler(val_indices)
     test_sampler = SubsetRandomSampler(test_indices)
 
+    tags_train = dataset[train_indices][2]
+    num_items = Counter(torch.flatten(tags_train).cpu().numpy())
+
+    max_num_items = max(num_items.values())
+
+    weights_dict = {}
+    for k,v in num_items.items():
+        weights_dict[k] = max_num_items/v
+
     train_loader = DataLoader(
         dataset, 
         batch_size=batch_size, 
@@ -248,7 +261,7 @@ def __dataloader(dataset, val_size, test_size, batch_size):
         sampler=test_sampler
     )
 
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader, test_loader, weights_dict
 
 if __name__ == "__main__":
     main()
