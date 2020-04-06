@@ -5,7 +5,9 @@ from torch.utils.data import DataLoader, RandomSampler
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from src.dataset import NerDataset
+from  src.dataset import FlairDataSet
 from src.trainer import TrainModel
+from src.flair_trainer import FlairTrainModel
 from src.utils.loader import get_path_last_model, set_saving_dir
 
 MODEL_TYPE = {
@@ -36,19 +38,28 @@ def main():
     path_previous_model = args.path_previous_model
     full_finetuning = args.full_finetuning
     continue_last_train = args.continue_last_train
+    flair = args.flair
+    reuse_emb = args.reuse_emb
 
     dropout = args.dropout
     modified_model = args.modified_model
 
     mode = args.mode
 
-    dataset = NerDataset(
-        data_path=data_path,
-        encoding="utf-8",
-        max_len=75,
-        pretrained_model=pretrained_model
+    if not flair:
+        dataset = NerDataset(
+            data_path=data_path,
+            encoding="latin1",
+            max_len=75,
+            pretrained_model=pretrained_model
+            )
+    else:
+        dataset = FlairDataSet(
+            data_path=data_path,
+            encoding="latin1",
+            reuse_emb=reuse_emb
         )
-    
+
     train_loader, val_loader, test_loader = __dataloader(dataset, val_size, test_size, batch_size)
 
     if mode == 'train':
@@ -63,23 +74,33 @@ def main():
         ignore_out_loss = args.ignore_out
         weighted_loss = args.weighted_loss
 
-        trainer = TrainModel(
-            train_loader=train_loader, 
-            val_loader=val_loader, 
-            tag2idx=dataset.tag2idx, 
-            idx2tag=dataset.idx2tag, 
-            pretrained_model=pretrained_model, 
-            batch_size=batch_size, 
-            path_previous_model=path_previous_model, 
-            full_finetuning=full_finetuning,
-            saving_dir = saving_dir,
-            dropout=dropout,
-            modified_model=modified_model,
-            ignore_out_loss=ignore_out_loss,
-            weighted_loss=weighted_loss,
-            weight_decay=weight_decay,
-            continue_csv=continue_csv,
-        )
+        if not flair:
+            trainer = TrainModel(
+	            train_loader=train_loader, 
+	            val_loader=val_loader, 
+	            tag2idx=dataset.tag2idx, 
+	            idx2tag=dataset.idx2tag, 
+	            pretrained_model=pretrained_model, 
+	            batch_size=batch_size, 
+	            path_previous_model=path_previous_model, 
+	            full_finetuning=full_finetuning,
+	            saving_dir = saving_dir,
+	            dropout=dropout,
+	            modified_model=modified_model,
+	            ignore_out_loss=ignore_out_loss,
+	            weighted_loss=weighted_loss,
+	            weight_decay=weight_decay,
+	            continue_csv=continue_csv,
+	        )
+        else:
+            trainer = FlairTrainModel(
+                train_loader=train_loader,
+                val_loader=val_loader,
+                tag2idx=dataset.tag2idx,
+                idx2tag=dataset.idx2tag,
+                batch_size=batch_size,
+                saving_dir=saving_dir
+            )
 
         config = {
         "n_epochs": n_epochs
@@ -167,6 +188,19 @@ def __set_argparse():
         type=float,
         default=0,
         help="add L2-regularization with the option 'weight decay' of the optimizer. Give the value of the bias to add to the weights.")
+    parser.add_argument(
+        "--flair",
+        type=bool,
+        default=False,
+        help="Set to True to use Flair instead of Bert Model"
+    )
+    parser.add_argument(
+        "--reuse_emb",
+        type=bool,
+        default=True,
+        help="For Flair reuse the embedding if we already computed it"
+    )
+
     return(parser)
 
 def float_between_0_and_1(x):
