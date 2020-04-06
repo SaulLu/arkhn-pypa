@@ -101,6 +101,7 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         self.list_weight = None
         
         self.ignore_index = -100
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.init_weights()
 
     def forward(
@@ -198,5 +199,5 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         list_weight = [weighted_dict[k] for k in self.label2id.keys()]
         list_weight = list_weight / sum(list_weight)
         print(f"list_weight: {list_weight}")
-        list_weight = torch.tensor(list_weight)
+        list_weight = torch.tensor(list_weight).to(self.device)
         return list_weight
