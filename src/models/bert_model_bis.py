@@ -192,12 +192,10 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         weighted_dict = dict()
         for k,v in self.label2id.items():
             weighted_dict[k] = 1 - np.sum( active_labels_array== v)/num_active_labels
-        print(f"weighted_dict: {weighted_dict}")
 
         weighted_dict['O'] = weighted_dict['O'] / 10.
 
         list_weight = [weighted_dict[k] for k in self.label2id.keys()]
         list_weight = list_weight / sum(list_weight)
-        print(f"list_weight: {list_weight}")
         list_weight = torch.tensor(list_weight).to(self.device).float()
         return list_weight
