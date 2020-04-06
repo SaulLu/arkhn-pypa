@@ -23,5 +23,6 @@ python ./pypa.py \
     --n_epochs 1001 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
-    --ignore_out
+    --weighted_loss\
+    --batch_size 100
     
