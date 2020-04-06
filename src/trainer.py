@@ -326,7 +326,10 @@ class TrainModel:
                         label_ids_without_o.append(label_ids_flat[indice])
                     else:
                         compt_out += 1
-                    
+                
+                logits_without_o = np.array(logits_without_o)
+                label_ids_without_o = np.array(label_ids_without_o)
+                
                 num_same_flat_without = np.sum(logits_without_o == label_ids_without_o)
 
                 print(f"num_same_flat: {num_same_flat_without}")
