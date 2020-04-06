@@ -185,7 +185,7 @@ def __set_argparse():
     parser.add_argument(
         "--weighted_loss",
         type=str,
-        choices=['batch','global'],
+        choices=['batch','global', 'less_out'],
         default=None,
         help="XXXXXXXXXXXXX")
     parser.add_argument(
