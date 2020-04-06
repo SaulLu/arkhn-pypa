@@ -4,6 +4,7 @@ import csv
 import os
 from path import Path
 import random
+from collections import Counter
 
 import torch
 from torch import nn
@@ -353,6 +354,9 @@ class TrainModel:
 
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
+        
+        print(f"predictions_flat : {Counter(predictions_flat)}")
+        print(f"true_labels_flat : {Counter(true_labels_flat)}")
 
         return (
             loss / nb_steps,
