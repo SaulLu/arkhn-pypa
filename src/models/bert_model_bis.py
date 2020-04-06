@@ -103,6 +103,7 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         else:
             self.list_weight = None
         
+        self.ignore_index = -100
         self.init_weights()
     
     def get_weights(self):
@@ -181,9 +182,9 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
                 active_labels = torch.where(
                     active_loss, labels.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels)
                 )
-                active_labels_array = active_labels.to("cpu").numpy()
+                active_labels_array = np.sum(active_labels.to("cpu").numpy()!= self.ignore_index)
                 out_labels = np.sum(active_labels_array==self.label2id['O'])
-                print(f"active_labels_array: {active_labels_array.shape[0]}")
+                print(f"active_labels_array: {active_labels_array}")
                 print(f"out_labels: {out_labels}")
 
                 loss = loss_fct(active_logits, active_labels)
