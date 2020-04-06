@@ -3,8 +3,6 @@
 #PBS -P arkhn-3a
 #PBS -l walltime=08:00:00
 #PBS -l select=1:ngpus=1:mem=32gb
-#PBS -o output_pypa.txt
-#PBS -e error_pypa.txt
 #PBS -q gpuq 
 
 # Go to the current directory 
@@ -26,5 +24,5 @@ python ./pypa.py \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
     --full_finetuning \
-    --weighted_loss 'global'\
+    --weighted_loss 'less_out'\
     --batch_size 100
