@@ -182,9 +182,6 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
             if self.weighted_loss=="global":
                 self.list_weight = self.get_weights_global()
 
-
-
-
             loss_fct = CrossEntropyLoss(weight=self.list_weight, ignore_index=self.ignore_index)
             
             loss = loss_fct(active_logits, active_labels)
@@ -210,7 +207,7 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
     
     def get_weights_global(self):
         list_weight = [None for _ in range(len(self.label2id.keys()))]
-        for k,v in self.weights_dict:
+        for k,v in self.weights_dict.items():
             list_weight[k] = v
         list_weight = torch.tensor(list_weight).to(self.device).float()
         return list_weight
