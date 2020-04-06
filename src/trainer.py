@@ -4,6 +4,7 @@ import csv
 import os
 from path import Path
 import random
+from collections import Counter
 
 import torch
 from torch import nn
@@ -34,6 +35,7 @@ class TrainModel:
         ignore_out_loss=False,
         weighted_loss=False,
         weight_decay=0,
+        continue_csv=False,
     ):
         random.seed(42)
         np.random.seed(42)
@@ -87,24 +89,25 @@ class TrainModel:
         if path_previous_model:
             self.__resume_training(path_previous_model)
 
-        path_metrics = os.path.join(self.saving_dir, "metrics.csv")
-        with open(path_metrics, "w+") as f:
-            writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "epoch",
-                    "train_loss",
-                    "val_loss",
-                    "train_accuracy",
-                    "train_accuracy_without_o",
-                    "val_accuracy",
-                    "val_accuracy_without_o",
-                    "train_f1",
-                    "train_f1_without_o",
-                    "val_f1",
-                    "val_f1_without_o",
-                ]
-            )
+        if not continue_csv:
+            path_metrics = os.path.join(self.saving_dir, "metrics.csv")
+            with open(path_metrics, "w+") as f:
+                writer = csv.writer(f)
+                writer.writerow(
+                    [
+                        "epoch",
+                        "train_loss",
+                        "val_loss",
+                        "train_accuracy",
+                        "train_accuracy_without_o",
+                        "val_accuracy",
+                        "val_accuracy_without_o",
+                        "train_f1",
+                        "train_f1_without_o",
+                        "val_f1",
+                        "val_f1_without_o",
+                    ]
+                )
 
     def __resume_training(self, path_model):
         checkpoint = torch.load(path_model)
@@ -237,7 +240,7 @@ class TrainModel:
             )
             print(f"Confusion matrix saved")
 
-            if curr_epoch % 10 == 0:
+            if curr_epoch % 10 == 0 and curr_epoch!=0:
                 name_save_model = (
                     curr_time + "_test_model" + "_epoch_" + curr_epoch_str + ".pt"
                 )
@@ -310,6 +313,13 @@ class TrainModel:
                 logits_flat = np.argmax(logits, axis=2).flatten()
                 label_ids_flat = label_ids.flatten()
 
+                # print(f"logits_flat size: {logits_flat.shape}")
+                # print(f"label_ids_flat size: {label_ids_flat.shape}")
+
+                num_same_flat = np.sum(logits_flat == label_ids_flat)
+
+                # print(f"num_same_flat: {num_same_flat}")
+
                 logits_without_o, label_ids_without_o = [], []
                 for indice in range(len(label_ids_flat)):
                     if label_ids_flat[indice] != self.tag2idx["O"]:
@@ -317,7 +327,14 @@ class TrainModel:
                         label_ids_without_o.append(label_ids_flat[indice])
                     else:
                         compt_out += 1
+                
+                logits_without_o = np.array(logits_without_o)
+                label_ids_without_o = np.array(label_ids_without_o)
 
+                num_same_flat_without = np.sum(logits_without_o == label_ids_without_o)
+
+                # print(f"num_same_flat: {num_same_flat_without}")
+                
                 predictions_flat.extend(list(self.idx2tag[l] for l in logits_flat))
                 true_labels_flat.extend(list(self.idx2tag[l] for l in label_ids_flat))
 
@@ -332,8 +349,14 @@ class TrainModel:
                     logits_without_o, label_ids_without_o
                 )
 
+                # print(f"accuracy: {accuracy}")
+                # print(f"accuracy_without_o: {accuracy_without_o}")
+
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
+        
+        print(f"predictions_flat : {Counter(predictions_flat)}")
+        print(f"true_labels_flat : {Counter(true_labels_flat)}")
 
         return (
             loss / nb_steps,
