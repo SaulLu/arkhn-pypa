@@ -14,8 +14,10 @@ cd $PBS_O_WORKDIR
 module load anaconda3/5.3.1
 source activate pypa_env
 
-pip freeze | grep -v -f requirements.txt - | xargs pip uninstall -y
-pip install -r requirements.txt --upgrade --no-warn-already-satisfied
+pip install flair
+
+# # pip freeze | grep -v -f requirements.txt - | xargs pip uninstall -y
+# # pip install -r requirements.txt --upgrade --no-warn-already-satisfied
 
 # Run code
 python ./pypa.py \
