@@ -58,6 +58,8 @@ def main():
         
         saving_dir = set_saving_dir(path_previous_model, pretrained_model, data_path)
 
+        continue_csv = (continue_last_train or path_previous_model)
+
         ignore_out_loss = args.ignore_out
         weighted_loss = args.weighted_loss
 
@@ -75,7 +77,8 @@ def main():
             modified_model=modified_model,
             ignore_out_loss=ignore_out_loss,
             weighted_loss=weighted_loss,
-            weight_decay=weight_decay
+            weight_decay=weight_decay,
+            continue_csv=continue_csv,
         )
 
         config = {

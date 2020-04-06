@@ -34,6 +34,7 @@ class TrainModel:
         ignore_out_loss=False,
         weighted_loss=False,
         weight_decay=0,
+        continue_csv=False,
     ):
         random.seed(42)
         np.random.seed(42)
@@ -87,24 +88,25 @@ class TrainModel:
         if path_previous_model:
             self.__resume_training(path_previous_model)
 
-        path_metrics = os.path.join(self.saving_dir, "metrics.csv")
-        with open(path_metrics, "w+") as f:
-            writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "epoch",
-                    "train_loss",
-                    "val_loss",
-                    "train_accuracy",
-                    "train_accuracy_without_o",
-                    "val_accuracy",
-                    "val_accuracy_without_o",
-                    "train_f1",
-                    "train_f1_without_o",
-                    "val_f1",
-                    "val_f1_without_o",
-                ]
-            )
+        if not continue_csv:
+            path_metrics = os.path.join(self.saving_dir, "metrics.csv")
+            with open(path_metrics, "w+") as f:
+                writer = csv.writer(f)
+                writer.writerow(
+                    [
+                        "epoch",
+                        "train_loss",
+                        "val_loss",
+                        "train_accuracy",
+                        "train_accuracy_without_o",
+                        "val_accuracy",
+                        "val_accuracy_without_o",
+                        "train_f1",
+                        "train_f1_without_o",
+                        "val_f1",
+                        "val_f1_without_o",
+                    ]
+                )
 
     def __resume_training(self, path_model):
         checkpoint = torch.load(path_model)
