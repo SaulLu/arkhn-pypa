@@ -24,6 +24,6 @@ python ./pypa.py \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
     --full_finetuning \
-    --weighted_loss 'global'\
+    --weighted_loss 'global' \
     --batch_size 100 \
     --l2_regularization 1e-1
