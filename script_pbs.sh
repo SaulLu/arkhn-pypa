@@ -1,7 +1,7 @@
 #PBS -S /bin/bash
 #PBS -N biobert_2009_fullfinetuning
 #PBS -P arkhn-3a
-#PBS -l walltime=08:00:00
+#PBS -l walltime=01:00:00
 #PBS -l select=1:ngpus=1:mem=32gb
 #PBS -q gpuq 
 
@@ -22,8 +22,6 @@ python ./pypa.py \
     --data_path  data/inputs/2009/dataframe_final_clean.csv \
     --n_epochs 1001 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
+    --batch_size 100 \
     --modified_model \
     --full_finetuning \
-    --weighted_loss 'global'\
-    --batch_size 100 \
-    --l2_regularization 1e-10
