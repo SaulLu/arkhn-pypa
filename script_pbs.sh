@@ -22,5 +22,8 @@ python ./pypa.py \
     --data_path  data/inputs/2009/dataframe_final_clean.csv \
     --n_epochs 1001 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
+    --modified_model \
     --full_finetuning \
-    --batch_size 100
+    --weighted_loss 'global'\
+    --batch_size 100 \
+    --l2_regularization 1e-10
