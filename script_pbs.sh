@@ -2,7 +2,7 @@
 #PBS -N biobert_2009_fullfinetuning
 #PBS -P arkhn-3a
 #PBS -l walltime=0:59:00
-#PBS -l select=1:ngpus=1:mem=32gb
+#PBS -l select=1:ngpus=1:mem=20gb
 #PBS -q gpuq 
 
 # Go to the current directory 
