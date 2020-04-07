@@ -12,7 +12,7 @@ from src.utils.loader import get_path_last_model, set_saving_dir
 
 MODEL_TYPE = {
     'bert':{
-        'base':'bert-base-cased',
+        'base':'bert-base-uncased',
         'biobert': 'monologg/biobert_v1.1_pubmed'
     },
     'camembert':{
@@ -139,7 +139,7 @@ def __set_argparse():
     parser.add_argument(
         "--pretrained_model",
         type=str,
-        default='bert-base-cased',
+        default='bert-base-uncased',
         help=f"Give the name of the pre-trained model you wish to use. The usable models are: Give the name of the pre-trained model you wish to use. The usable models are: {MODEL_TYPE}")
     parser.add_argument(
         "--batch_size",
