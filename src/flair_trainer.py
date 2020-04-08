@@ -145,7 +145,7 @@ class FlairTrainModel:
             print(f"Train F1-Score without out: {train_f1_score_without_o}")
             print(f"Validation F1-Score without out: {eval_f1_score_without_o}")
 
-            labels_list = list(self.tag2idx.keys())
+            labels_list = [self.idx2tag([i]) for i in range(len(self.idx2tag))]
 
             curr_time = time.strftime("%Y%m%d_%H%M%S")
 
