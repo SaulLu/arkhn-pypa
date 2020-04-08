@@ -181,13 +181,57 @@ def __set_argparse():
     parser.add_argument(
         "--ignore_out",
         action='store_true',
-        help="Ignores out-type labels in the loss calculation")
+        help=r"""By default, the loss used is CrossEntropy from nn.torch. 
+            With x the output of the model and t the values to be predicted.
+            If 
+            x= [x_{1} , - , x_{n}] = 
+            [[p_{1,1}, - , p_{1,k}],\\
+            [| , - , |],\\
+            [p_{n,1} , - , p_{n,k}]]
+            and 
+            t = [t_{1} , - , t_{n}]
+            So 
+                L(x,t) = mean_{i}(L_{1}(x_{i}, t_{i}))
+            with 
+                L_{1}(x_{i}, t_{i})=-\log\left(\frac{\exp(p_{i,t_{i}})}{\sum_j \exp(p_{i,j})}\right).
+            
+            With ignore_out, L_{1} is replaced by L_{2} being : 
+                L_{2}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
+            with 
+                w_{t_{i}}= 0 if t_{i} describes class out 1 otherwise
+            """
+            )
     parser.add_argument(
         "--weighted_loss",
         type=str,
-        choices=['batch','global', 'less_out'],
+        choices=['global', 'less_out'],
         default=None,
-        help="XXXXXXXXXXXXX")
+        help=r"""By default, the loss used is CrossEntropy from nn.torch. 
+            With x the output of the model and t the values to be predicted.
+            If 
+            x= [x_{1} , - , x_{n}] = 
+            [[p_{1,1}, - , p_{1,k}],\\
+            [| , - , |],\\
+            [p_{n,1} , - , p_{n,k}]]
+            and 
+            t = [t_{1} , - , t_{n}]
+            So 
+                L(x,t) = mean_{i}(L_{1}(x_{i}, t_{i}))
+            with 
+                L_{1}(x_{i}, t_{i})=-\log\left(\frac{\exp(p_{i,t_{i}})}{\sum_j \exp(p_{i,j})}\right).
+            
+            With global, L_{1} is replaced by L_{3} being : 
+                L_{3}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
+            with 
+                w_{t_{i}}= \frac{max_{j}(num_t_{j})}{num_t_{i}} 
+            where 
+            num_t_{i} is the total number of t_{i} in the train set.
+
+            With less_out, L_{1} is replaced by L_{4} being : 
+                L_{4}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
+            with 
+                w_{t_{i}}= 0.5 if t_{i} describes class out 1 otherwise
+            """)
     parser.add_argument(
         "--l2_regularization",
         type=float,
