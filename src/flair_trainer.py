@@ -211,6 +211,10 @@ class FlairTrainModel:
         labels_flat = labels.flatten()
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
+    def __accuracy(self, pred_flat, labels_flat):
+        return np.sum(pred_flat == labels_flat) / len(labels_flat)
+
+
     def __compute_loss_and_accuracy(self, loader):
 
         loss, accuracy, accuracy_without_o = 0, 0, 0
