@@ -222,6 +222,6 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
     
     def get_weights_ignore_out(self):
         list_weight = [1. for _ in range(len(self.label2id.keys()))]
-        list_weight[self.label2id['O']] = 0
+        list_weight[self.label2id['O']] = 1e-20
         list_weight = torch.tensor(list_weight).to(self.device).float()
         return list_weight
