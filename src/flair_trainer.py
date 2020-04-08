@@ -109,47 +109,41 @@ class FlairTrainModel:
             (
                 train_loss,
                 train_accuracy,
+                train_accuracy_without_o,
                 train_predictions,
+                train_predictions_without_o,
                 train_true_labels,
+                train_true_labels_without_o,
+
             ) = self.__compute_loss_and_accuracy(self.__train_loader)
 
             (
                 eval_loss,
                 eval_accuracy,
+                eval_accuracy_without_o,
                 eval_predictions,
+                eval_predictions_without_o,
                 eval_true_labels,
+                eval_true_labels_without_o,
             ) = self.__compute_loss_and_accuracy(self.__val_loader)
 
             print(f"Train loss: {train_loss}")
             print(f"Train accuracy: {train_accuracy}")
+            print(f"Train accuracy without out: {train_accuracy_without_o}")
 
             print(f"Validation loss: {eval_loss}")
             print(f"Validation accuracy: {eval_accuracy}")
+            print(f"Validation accuracy without out: {eval_accuracy_without_o}")
 
-            train_pred_tags = [
-                self.idx2tag[p]
-                for p in train_predictions
-
-            ]
-            train_valid_tags = [
-                self.idx2tag[l]
-                for l in train_true_labels
-
-            ]
-            eval_pred_tags = [
-                self.idx2tag[p]
-                for p in eval_predictions
-            ]
-            eval_valid_tags = [
-                self.idx2tag[l]
-                for l in eval_true_labels
-            ]
-
-            train_f1_score = f1_score(train_pred_tags, train_valid_tags)
-            eval_f1_score = f1_score(eval_pred_tags, eval_valid_tags)
+            train_f1_score = f1_score(train_predictions, train_true_labels)
+            eval_f1_score = f1_score(eval_predictions, eval_true_labels)
+            train_f1_score_without_o = f1_score(train_predictions_without_o, train_true_labels_without_o)
+            eval_f1_score_without_o = f1_score(eval_predictions_without_o, eval_true_labels_without_o)
 
             print(f"Train F1-Score: {train_f1_score}")
             print(f"Validation F1-Score: {eval_f1_score}")
+            print(f"Train F1-Score without out: {train_f1_score_without_o}")
+            print(f"Validation F1-Score without out: {eval_f1_score_without_o}")
 
             labels_list = list(self.tag2idx.keys())
 
@@ -157,27 +151,37 @@ class FlairTrainModel:
 
             curr_epoch_str = str(curr_epoch)
 
-            train_conf_matrix = confusion_matrix(train_valid_tags, train_pred_tags, labels=labels_list)
-            eval_conf_matrix = confusion_matrix(eval_valid_tags, eval_pred_tags, labels=labels_list)
-            generate_confusion_matrix(
-                train_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='train',
-                saving_dir=self.saving_dir
+            train_conf_matrix = confusion_matrix(
+                train_predictions, train_true_labels, labels=labels_list
+            )
+            eval_conf_matrix = confusion_matrix(
+                eval_predictions, eval_true_labels, labels=labels_list
             )
             generate_confusion_matrix(
-                eval_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='eval',
-                saving_dir=self.saving_dir
+                train_conf_matrix,
+                labels_list,
+                curr_epoch=curr_epoch_str,
+                curr_time=curr_time,
+                prefix="train",
+                saving_dir=self.saving_dir,
+            )
+            generate_confusion_matrix(
+                eval_conf_matrix,
+                labels_list,
+                curr_epoch=curr_epoch_str,
+                curr_time=curr_time,
+                prefix="eval",
+                saving_dir=self.saving_dir,
             )
             print(f"Confusion matrix saved")
 
-            if curr_epoch % 10 == 0:
+            if curr_epoch % 10 == 0 and curr_epoch != 0:
                 name_save_model = (
-                        curr_time
-                        + "_test_model"
-                        + "_epoch_"
-                        + curr_epoch_str
-                        + ".pt"
+                        curr_time + "_test_model" + "_epoch_" + curr_epoch_str + ".pt"
                 )
-                path_save_model = os.path.join(self.saving_dir, "intermediate", name_save_model)
+                path_save_model = os.path.join(
+                    self.saving_dir, "intermediate", name_save_model
+                )
                 torch.save(
                     {
                         "epoch": curr_epoch,
@@ -198,9 +202,13 @@ class FlairTrainModel:
                         train_loss,
                         eval_loss,
                         train_accuracy,
+                        train_accuracy_without_o,
                         eval_accuracy,
+                        eval_accuracy_without_o,
                         train_f1_score,
+                        train_f1_score_without_o,
                         eval_f1_score,
+                        eval_f1_score_without_o,
                     ]
                 )
 
