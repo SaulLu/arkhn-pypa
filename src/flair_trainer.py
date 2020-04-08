@@ -70,7 +70,9 @@ class FlairTrainModel:
         _, targets = train_loader.dataset.data.tensors
         t = targets.int().numpy()
         freq = np.bincount(t)
-        return torch.Tensor(1 - (freq/freq.sum()))
+        t = 1 - (freq/freq.sum())
+        t[self.tag2idx['O']] /= 10
+        return torch.Tensor(t)
 
 
     def __resume_training(self, path_model):
