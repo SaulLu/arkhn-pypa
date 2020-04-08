@@ -50,13 +50,14 @@ class TrainModel:
         self.full_finetuning = full_finetuning
         self.tag2idx = tag2idx
         self.idx2tag = idx2tag
+        self.modified_model = modified_model
 
         self.__train_loader = train_loader
         self.__val_loader = val_loader
 
         self.saving_dir = Path(saving_dir)
 
-        config, unused_kwargs = AutoConfig.from_pretrained(
+        self.config, unused_kwargs = AutoConfig.from_pretrained(
             pretrained_model_name_or_path=self.pretrained_model,
             num_labels=len(tag2idx),
             return_unused_kwargs=True,
@@ -64,18 +65,18 @@ class TrainModel:
             id2label=idx2tag,
             label2id=tag2idx,
         )
-        print(f"config : {config}")
-        config_special = {
+        print(f"config : {self.config}")
+        self.config_special = {
             "ignore_out_loss": ignore_out_loss,
             "weighted_loss": weighted_loss,
         }
-        print(f"config_special :\n {config_special}")
+        print(f"config_special :\n {self.config_special}")
 
         assert unused_kwargs == {}, f"Unused kwargs :{unused_kwargs}"
         if modified_model:
-            self.model = BertForTokenClassificationModified(config, config_special)
+            self.model = BertForTokenClassificationModified(self.config, self.config_special)
         else:
-            self.model = AutoModelForTokenClassification.from_config(config)
+            self.model = AutoModelForTokenClassification.from_config(self.config)
 
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -249,6 +250,9 @@ class TrainModel:
                 )
                 torch.save(
                     {
+                        "config": self.config,
+                        "config_special": self.config_special,
+                        "modified_model": self.modified_model,
                         "epoch": curr_epoch,
                         "train_loss": train_loss,
                         "val_loss": eval_loss,
