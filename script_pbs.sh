@@ -25,6 +25,7 @@ python ./pypa.py \
     --n_epochs 1001 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
+    --full_finetuning \
     --batch_size 100 \
     --ignore_out \
     
