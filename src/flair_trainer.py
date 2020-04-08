@@ -266,7 +266,7 @@ class FlairTrainModel:
 
                 loss += tmp_loss.mean().item()
                 accuracy += tmp_accuracy
-                accuracy_without_o += self.__accuracy(
+                accuracy_without_o += self.__flat_accuracy(
                     logits_without_o, label_ids_without_o
                 )
 
