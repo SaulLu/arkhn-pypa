@@ -245,11 +245,10 @@ class FlairTrainModel:
 
                 logits_without_o = np.array(logits_without_o)
                 label_ids_without_o = np.array(label_ids_without_o)
-                predictions += list(self.idx2tag[l] for l in outputs)
-                true_labels += list(self.idx2tag[l] for l in label_ids)
-
-                predictions_without_o += list(self.idx2tag[l] for l in logits_without_o)
-                true_labels_without_o += list(self.idx2tag[l] for l in label_ids_without_o)
+                predictions += list(self.idx2tag[l] for l in outputs.tolist())
+                true_labels += list(self.idx2tag[l] for l in label_ids.tolist())
+                predictions_without_o += list(self.idx2tag[l] for l in logits_without_o.tolist())
+                true_labels_without_o += list(self.idx2tag[l] for l in label_ids_without_o.tolist())
 
                 tmp_accuracy = self.__flat_accuracy(outputs, label_ids)
 
