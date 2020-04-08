@@ -231,8 +231,8 @@ class FlairTrainModel:
 
                 outputs = outputs.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
-                predictions += np.argmax(outputs, axis=1).tolist()
-                true_labels += label_ids.tolist()
+                #predictions += np.argmax(outputs, axis=1).tolist()
+                #true_labels += label_ids.tolist()
 
                 logits_without_o, label_ids_without_o = [], []
                 for indice in range(len(label_ids)):
@@ -245,7 +245,7 @@ class FlairTrainModel:
 
                 logits_without_o = np.array(logits_without_o)
                 label_ids_without_o = np.array(label_ids_without_o)
-                predictions += list(self.idx2tag[l] for l in outputs.tolist())
+                predictions += list(self.idx2tag[l] for l in np.argmax(outputs, axis=1).tolist())
                 true_labels += list(self.idx2tag[l] for l in label_ids.tolist())
                 predictions_without_o += list(self.idx2tag[l] for l in logits_without_o.tolist())
                 true_labels_without_o += list(self.idx2tag[l] for l in label_ids_without_o.tolist())
