@@ -13,13 +13,13 @@ from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
-from src.models.linear_model import  LinearModel
+from src.models.linear_model import LinearModel
 
 
 class FlairTrainModel:
     def __init__(
             self,
-            train_loader : DataLoader,
+            train_loader: DataLoader,
             val_loader,
             tag2idx,
             idx2tag,
@@ -213,9 +213,12 @@ class FlairTrainModel:
 
     def __compute_loss_and_accuracy(self, loader):
 
-        loss, accuracy = 0, 0
+        loss, accuracy, accuracy_without_o = 0, 0, 0
         nb_steps, nb_sentences = 0, 0
         predictions, true_labels = [], []
+        predictions_without_o, true_labels_without_o = [], []
+
+        compt_out = 0
         with torch.no_grad():
             for batch in loader:
                 batch = tuple(t.to(self.device) for t in batch)
@@ -224,20 +227,53 @@ class FlairTrainModel:
                 outputs = self.model(tokens)
                 tmp_loss = self.criterion(outputs,tags)
 
+
+
                 outputs = outputs.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
                 predictions += np.argmax(outputs, axis=1).tolist()
                 true_labels += label_ids.tolist()
 
+                logits_without_o, label_ids_without_o = [], []
+                for indice in range(len(label_ids)):
+                    if label_ids[indice] != self.tag2idx["O"]:
+                        logits_without_o.append(outputs[indice])
+                        label_ids_without_o.append(label_ids[indice])
+                    else:
+                        compt_out += 1
+
+
+                logits_without_o = np.array(logits_without_o)
+                label_ids_without_o = np.array(label_ids_without_o)
+                predictions += list(self.idx2tag[l] for l in outputs)
+                true_labels += list(self.idx2tag[l] for l in label_ids)
+
+                predictions_without_o += list(self.idx2tag[l] for l in logits_without_o)
+                true_labels_without_o += list(self.idx2tag[l] for l in label_ids_without_o)
+
                 tmp_accuracy = self.__flat_accuracy(outputs, label_ids)
 
                 loss += tmp_loss.mean().item()
                 accuracy += tmp_accuracy
+                accuracy_without_o += self.__accuracy(
+                    logits_without_o, label_ids_without_o
+                )
+
+                # print(f"accuracy: {accuracy}")
+                # print(f"accuracy_without_o: {accuracy_without_o}")
 
                 nb_sentences += tokens.size(0)
                 nb_steps += 1
 
-        return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
+        return (
+            loss / nb_steps,
+            accuracy / nb_steps,
+            accuracy_without_o / nb_steps,
+            predictions,
+            predictions_without_o,
+            true_labels,
+            true_labels_without_o,
+        )
 
 
 if __name__ == "__main__":
