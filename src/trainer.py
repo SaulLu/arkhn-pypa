@@ -36,6 +36,7 @@ class TrainModel:
         weighted_loss=False,
         weight_decay=0,
         continue_csv=False,
+        weights_dict=None,
     ):
         random.seed(42)
         np.random.seed(42)
@@ -68,6 +69,7 @@ class TrainModel:
         config_special = {
             "ignore_out_loss": ignore_out_loss,
             "weighted_loss": weighted_loss,
+            "weights_dict": weights_dict,
         }
         print(f"config_special :\n {config_special}")
 
