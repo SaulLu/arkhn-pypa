@@ -13,13 +13,13 @@ from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
-from src.models.linear_model import  LinearModel
+from src.models.linear_model import LinearModel
 
 
 class FlairTrainModel:
     def __init__(
             self,
-            train_loader : DataLoader,
+            train_loader: DataLoader,
             val_loader,
             tag2idx,
             idx2tag,
@@ -109,47 +109,41 @@ class FlairTrainModel:
             (
                 train_loss,
                 train_accuracy,
+                train_accuracy_without_o,
                 train_predictions,
+                train_predictions_without_o,
                 train_true_labels,
+                train_true_labels_without_o,
+
             ) = self.__compute_loss_and_accuracy(self.__train_loader)
 
             (
                 eval_loss,
                 eval_accuracy,
+                eval_accuracy_without_o,
                 eval_predictions,
+                eval_predictions_without_o,
                 eval_true_labels,
+                eval_true_labels_without_o,
             ) = self.__compute_loss_and_accuracy(self.__val_loader)
 
             print(f"Train loss: {train_loss}")
             print(f"Train accuracy: {train_accuracy}")
+            print(f"Train accuracy without out: {train_accuracy_without_o}")
 
             print(f"Validation loss: {eval_loss}")
             print(f"Validation accuracy: {eval_accuracy}")
+            print(f"Validation accuracy without out: {eval_accuracy_without_o}")
 
-            train_pred_tags = [
-                self.idx2tag[p]
-                for p in train_predictions
-
-            ]
-            train_valid_tags = [
-                self.idx2tag[l]
-                for l in train_true_labels
-
-            ]
-            eval_pred_tags = [
-                self.idx2tag[p]
-                for p in eval_predictions
-            ]
-            eval_valid_tags = [
-                self.idx2tag[l]
-                for l in eval_true_labels
-            ]
-
-            train_f1_score = f1_score(train_pred_tags, train_valid_tags)
-            eval_f1_score = f1_score(eval_pred_tags, eval_valid_tags)
+            train_f1_score = f1_score(train_predictions, train_true_labels)
+            eval_f1_score = f1_score(eval_predictions, eval_true_labels)
+            train_f1_score_without_o = f1_score(train_predictions_without_o, train_true_labels_without_o)
+            eval_f1_score_without_o = f1_score(eval_predictions_without_o, eval_true_labels_without_o)
 
             print(f"Train F1-Score: {train_f1_score}")
             print(f"Validation F1-Score: {eval_f1_score}")
+            print(f"Train F1-Score without out: {train_f1_score_without_o}")
+            print(f"Validation F1-Score without out: {eval_f1_score_without_o}")
 
             labels_list = list(self.tag2idx.keys())
 
@@ -157,27 +151,37 @@ class FlairTrainModel:
 
             curr_epoch_str = str(curr_epoch)
 
-            train_conf_matrix = confusion_matrix(train_valid_tags, train_pred_tags, labels=labels_list)
-            eval_conf_matrix = confusion_matrix(eval_valid_tags, eval_pred_tags, labels=labels_list)
-            generate_confusion_matrix(
-                train_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='train',
-                saving_dir=self.saving_dir
+            train_conf_matrix = confusion_matrix(
+                train_predictions, train_true_labels, labels=labels_list
+            )
+            eval_conf_matrix = confusion_matrix(
+                eval_predictions, eval_true_labels, labels=labels_list
             )
             generate_confusion_matrix(
-                eval_conf_matrix, labels_list, curr_epoch=curr_epoch_str, curr_time=curr_time, prefix='eval',
-                saving_dir=self.saving_dir
+                train_conf_matrix,
+                labels_list,
+                curr_epoch=curr_epoch_str,
+                curr_time=curr_time,
+                prefix="train",
+                saving_dir=self.saving_dir,
+            )
+            generate_confusion_matrix(
+                eval_conf_matrix,
+                labels_list,
+                curr_epoch=curr_epoch_str,
+                curr_time=curr_time,
+                prefix="eval",
+                saving_dir=self.saving_dir,
             )
             print(f"Confusion matrix saved")
 
-            if curr_epoch % 10 == 0:
+            if curr_epoch % 10 == 0 and curr_epoch != 0:
                 name_save_model = (
-                        curr_time
-                        + "_test_model"
-                        + "_epoch_"
-                        + curr_epoch_str
-                        + ".pt"
+                        curr_time + "_test_model" + "_epoch_" + curr_epoch_str + ".pt"
                 )
-                path_save_model = os.path.join(self.saving_dir, "intermediate", name_save_model)
+                path_save_model = os.path.join(
+                    self.saving_dir, "intermediate", name_save_model
+                )
                 torch.save(
                     {
                         "epoch": curr_epoch,
@@ -198,9 +202,13 @@ class FlairTrainModel:
                         train_loss,
                         eval_loss,
                         train_accuracy,
+                        train_accuracy_without_o,
                         eval_accuracy,
+                        eval_accuracy_without_o,
                         train_f1_score,
+                        train_f1_score_without_o,
                         eval_f1_score,
+                        eval_f1_score_without_o,
                     ]
                 )
 
@@ -211,11 +219,18 @@ class FlairTrainModel:
         labels_flat = labels.flatten()
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
+    def __accuracy(self, pred_flat, labels_flat):
+        return np.sum(pred_flat == labels_flat) / len(labels_flat)
+
+
     def __compute_loss_and_accuracy(self, loader):
 
-        loss, accuracy = 0, 0
+        loss, accuracy, accuracy_without_o = 0, 0, 0
         nb_steps, nb_sentences = 0, 0
         predictions, true_labels = [], []
+        predictions_without_o, true_labels_without_o = [], []
+
+        compt_out = 0
         with torch.no_grad():
             for batch in loader:
                 batch = tuple(t.to(self.device) for t in batch)
@@ -224,20 +239,52 @@ class FlairTrainModel:
                 outputs = self.model(tokens)
                 tmp_loss = self.criterion(outputs,tags)
 
+
+
                 outputs = outputs.detach().cpu().numpy()
                 label_ids = tags.to('cpu').numpy()
-                predictions += np.argmax(outputs, axis=1).tolist()
-                true_labels += label_ids.tolist()
+                #predictions += np.argmax(outputs, axis=1).tolist()
+                #true_labels += label_ids.tolist()
+
+                logits_without_o, label_ids_without_o = [], []
+                for indice in range(len(label_ids)):
+                    if label_ids[indice] != self.tag2idx["O"]:
+                        logits_without_o.append(outputs[indice])
+                        label_ids_without_o.append(label_ids[indice])
+                    else:
+                        compt_out += 1
+
+
+                logits_without_o = np.array(logits_without_o)
+                label_ids_without_o = np.array(label_ids_without_o)
+                predictions += list(self.idx2tag[l] for l in np.argmax(outputs, axis=1).tolist())
+                true_labels += list(self.idx2tag[l] for l in label_ids.tolist())
+                predictions_without_o += list(self.idx2tag[l] for l in np.argmax(logits_without_o, axis=1).tolist())
+                true_labels_without_o += list(self.idx2tag[l] for l in label_ids_without_o.tolist())
 
                 tmp_accuracy = self.__flat_accuracy(outputs, label_ids)
 
                 loss += tmp_loss.mean().item()
                 accuracy += tmp_accuracy
+                accuracy_without_o += self.__flat_accuracy(
+                    logits_without_o, label_ids_without_o
+                )
+
+                # print(f"accuracy: {accuracy}")
+                # print(f"accuracy_without_o: {accuracy_without_o}")
 
                 nb_sentences += tokens.size(0)
                 nb_steps += 1
 
-        return loss / nb_steps, accuracy / nb_steps, predictions, true_labels
+        return (
+            loss / nb_steps,
+            accuracy / nb_steps,
+            accuracy_without_o / nb_steps,
+            predictions,
+            predictions_without_o,
+            true_labels,
+            true_labels_without_o,
+        )
 
 
 if __name__ == "__main__":
