@@ -161,8 +161,6 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
 
         outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
         if labels is not None:
-            if self.ignore_out_loss:
-                self.ignore_index=self.label2id['O']
             
             # Only keep active parts of the loss
             if attention_mask is not None:
@@ -183,6 +181,8 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
                 self.list_weight = self.get_weights_global()
             if self.weighted_loss=="less_out":
                 self.list_weight = self.get_weights_less_for_out()
+            if self.ignore_out_loss:
+                self.list_weight = self.get_weights_ignore_out()
 
             loss_fct = CrossEntropyLoss(weight=self.list_weight, ignore_index=self.ignore_index)
             
@@ -217,5 +217,11 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
     def get_weights_less_for_out(self):
         list_weight = [1. for _ in range(len(self.label2id.keys()))]
         list_weight[self.label2id['O']] = 0.5
+        list_weight = torch.tensor(list_weight).to(self.device).float()
+        return list_weight
+    
+    def get_weights_ignore_out(self):
+        list_weight = [1. for _ in range(len(self.label2id.keys()))]
+        list_weight[self.label2id['O']] = 0
         list_weight = torch.tensor(list_weight).to(self.device).float()
         return list_weight
