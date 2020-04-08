@@ -64,7 +64,14 @@ def visualization_complex():
         type=str,
         default='test',
         help="name of the root folder associated to the model")
-    model_pathname = parser.parse_args().model_pathname
+    parser.add_argument(
+        "--number_epoch",
+        type=int,
+        default=None,
+        help="nomber of epoch to show")
+    args = parser.parse_args()
+    model_pathname = args.model_pathname
+    number_epoch = args.number_epoch
 
     epoch = []
     train_loss = []
@@ -82,6 +89,9 @@ def visualization_complex():
         reader = csv.reader(f)
         _ = next(reader)
         for row in reader:
+            if number_epoch:
+                if int(row[0]) > number_epoch:
+                    break
             epoch.append(int(row[0]))
             train_loss.append(float(row[1]))
             val_loss.append(float(row[2]))
@@ -131,7 +141,10 @@ def visualization_complex():
     f1_plot.set(xlabel='Epoch', ylabel='F1')
     f1_plot.legend()
 
-    plt.savefig(f'data/results/{model_pathname}/metrics.png')
+    if number_epoch:
+        plt.savefig(f'data/results/{model_pathname}/metrics_{number_epoch}.png')
+    else:
+        plt.savefig(f'data/results/{model_pathname}/metrics.png')
 
 def main():
     visualization_complex()
