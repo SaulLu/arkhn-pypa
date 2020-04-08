@@ -1,7 +1,7 @@
 #PBS -S /bin/bash
 #PBS -N biobert_2009_fullfinetuning
 #PBS -P arkhn-3a
-#PBS -l walltime=08:00:00
+#PBS -l walltime=02:00:00
 #PBS -l select=1:ngpus=1:mem=32gb
 #PBS -o output_pypa.txt
 #PBS -e error_pypa.txt
@@ -25,5 +25,6 @@ python ./pypa.py \
     --n_epochs 1001 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
-    --batch_size 100
+    --batch_size 100 \
+    --ignore_out \
     
