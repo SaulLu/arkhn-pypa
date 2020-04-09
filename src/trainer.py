@@ -336,6 +336,14 @@ class TrainModel:
                 num_same_flat_without = np.sum(logits_without_o == label_ids_without_o)
 
                 # print(f"num_same_flat: {num_same_flat_without}")
+
+                print(f"logits_flat : {Counter(logits_flat)}")
+                print(f"label_ids_flat : {Counter(label_ids_flat)}")
+
+                print(f"logits_without_o : {Counter(logits_without_o)}")
+                print(f"label_ids_without_o : {Counter(label_ids_without_o)}")
+
+                print(f"self.idx2tag : {self.idx2tag}")
                 
                 predictions_flat.extend(list(self.idx2tag[l] for l in logits_flat))
                 true_labels_flat.extend(list(self.idx2tag[l] for l in label_ids_flat))
@@ -357,8 +365,10 @@ class TrainModel:
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
         
-        print(f"predictions_flat : {Counter(predictions_flat)}")
         print(f"true_labels_flat : {Counter(true_labels_flat)}")
+        print(f"predictions_flat : {Counter(predictions_flat)}")
+        print(f"len predictions_flat : {len(predictions_flat)}")
+        print(f"len true_labels_flat : {len(true_labels_flat)}")
 
         return (
             loss / nb_steps,
