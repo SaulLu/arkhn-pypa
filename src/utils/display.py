@@ -43,19 +43,19 @@ def generate_confusion_matrix(conf_matrix, labels_list, curr_time=None, curr_epo
     df_conf_matrix_true = (df_conf_matrix.T / df_conf_matrix.T.sum()).T * 100
     df_conf_matrix_true = df_conf_matrix_true.round(0)
     display_confusion_matrix(df_conf_matrix_true, path=path_mat_recall, 
-        title=f'Recall Matrix (%) - {prefix.capitalize()}')
+        title=f'Precision Matrix (%) - {prefix.capitalize()}')
     
     df_conf_matrix_pred = df_conf_matrix / df_conf_matrix.sum() *100
     df_conf_matrix_pred = df_conf_matrix_pred.round(0)
     display_confusion_matrix(df_conf_matrix_pred, path=path_mat_precision, 
-        title=f'Precision Matrix (%) - {prefix.capitalize()}')
+        title=f'Recall Matrix (%) - {prefix.capitalize()}')
 
 def display_confusion_matrix(df_conf_matrix, path=None, title=None):
     _, __ = plt.subplots()
     sn.set(font_scale=0.8)
     sn.heatmap(df_conf_matrix, annot=True, fmt='g')
-    plt.ylabel('True Tag', va='center')
-    plt.xlabel('Predicted Tag')
+    plt.ylabel('Predicted Tag', va='center')
+    plt.xlabel('True Tag')
     plt.title(title)
     if path:
         try:
