@@ -52,6 +52,7 @@ class TrainModel:
         self.full_finetuning = full_finetuning
         self.tag2idx = tag2idx
         self.idx2tag = idx2tag
+        self.bert_crf = bert_crf
 
         self.__train_loader = train_loader
         self.__val_loader = val_loader
@@ -77,7 +78,7 @@ class TrainModel:
         assert unused_kwargs == {}, f"Unused kwargs :{unused_kwargs}"
         if modified_model:
             self.model = BertForTokenClassificationModified(config, config_special)
-        elif bert_crf:
+        elif self.bert_crf:
             self.model = BertForTokenClassificationCRF(config)
         else:
             self.model = AutoModelForTokenClassification.from_config(config)
@@ -314,8 +315,11 @@ class TrainModel:
 
                 logits = logits.detach().cpu().numpy()
                 label_ids = tags.to("cpu").numpy()
-
-                logits_flat = np.argmax(logits, axis=2).flatten()
+                
+                if self.bert_crf:
+                    logits_flat = logits.flatten()
+                else:
+                    logits_flat = np.argmax(logits, axis=2).flatten()
                 label_ids_flat = label_ids.flatten()
 
                 # print(f"logits_flat size: {logits_flat.shape}")
