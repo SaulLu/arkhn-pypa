@@ -28,6 +28,6 @@ python ./pypa.py \
     --modified_model \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --weighted_loss 'global' \
-    --l2_regularization 0,00001 \
+    --l2_regularization 0.00001 \
     --noise_train_dataset
     
