@@ -24,7 +24,7 @@ python ./pypa.py \
     --n_epochs 1001 \
     --data_path data/inputs/2009/dataframe_final_clean.csv \
     --full_finetuning \
-    --batch_size 50 \
+    --batch_size 100 \
     --modified_model \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --noise_train_dataset
