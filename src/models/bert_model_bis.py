@@ -21,7 +21,7 @@ from torch import nn
 from torch.nn import CrossEntropyLoss
 import numpy as np
 
-from torchcrf import CRF #https://github.com/kmkurn/pytorch-crf#egg=pytorch_crf
+from .torchcrf import CRF #https://github.com/kmkurn/pytorch-crf#egg=pytorch_crf
 
 from transformers import (
     BertModel,
