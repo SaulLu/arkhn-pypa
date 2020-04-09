@@ -293,7 +293,7 @@ def __dataloader(dataset, val_size, test_size, batch_size, noise=False):
         weights_dict[k] = max_num_items/v
 
     if noise:
-        dataset_noise = __noise_data(dataset, prob=0.02, random_state=1)
+        dataset_noise = __noise_data(dataset, prob=0.05, random_state=1)
         train_loader = DataLoader(
             dataset_noise, 
             batch_size=batch_size, 
