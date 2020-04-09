@@ -243,15 +243,21 @@ class BertForTokenClassificationCRF(BertPreTrainedModel):
             else:
                 loss,  = - self.classifier(sequence_output, labels)
                 logits = torch.Tensor(self.classifier.decode(sequence_output))
-            print(f"logits: {logits.size()}")
+            
+            seq_lenght = max([len(logits[i]) for i in range(len(logits))])
+            logits = np.array([np.pad(logits[i], (0, seq_lenght-len(logits[i])), mode='constant', constant_values=0) for i in range(len(logits))])
+            logits = torch.tensor(logits)
+
+            # print(f"logits: {logits.size()}")
             outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
-            print(f"outputs: {outputs.size()}")
             outputs = (loss,) + outputs
-            print(f"outputs: {outputs.size()}")
 
         else:
             logits = self.classifier.decode(sequence_output)
-            outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
+
+            seq_lenght = max([len(logits[i]) for i in range(len(logits))])
+            logits = np.array([np.pad(logits[i], (0, seq_lenght-len(logits[i])), mode='constant', constant_values=0) for i in range(len(logits))])
+            logits = torch.tensor(logits)
 
         return outputs  # (loss), scores, (hidden_states), (attentions)
 
