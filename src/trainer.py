@@ -123,7 +123,6 @@ class TrainModel:
     def __set_optimizer(self, weight_decay):
         if self.full_finetuning:
             param_optimizer = list(self.model.named_parameters())
-            print(f"param_optimizer: {param_optimizer}")
             no_decay = ["bias", "gamma", "beta"]
             optimizer_grouped_parameters = [
                 {
@@ -141,7 +140,6 @@ class TrainModel:
                     "weight_decay_rate": 0.0,
                 },
             ]
-            print(f"optimizer_grouped_parameters: {optimizer_grouped_parameters}")
         else:
             param_optimizer = list(self.model.classifier.named_parameters())
             optimizer_grouped_parameters = [{"params": [p for n, p in param_optimizer]}]
