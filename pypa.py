@@ -45,6 +45,7 @@ def main():
 
     dropout = args.dropout
     modified_model = args.modified_model
+    noise = args.noise_train_dataset
 
     mode = args.mode
 
@@ -62,7 +63,7 @@ def main():
             reuse_emb=reuse_emb
         )
 
-    train_loader, val_loader, test_loader, weights_dict = __dataloader(dataset, val_size, test_size, batch_size)
+    train_loader, val_loader, test_loader, weights_dict = __dataloader(dataset, val_size, test_size, batch_size, noise=noise)
 
     if mode == 'train':
         if continue_last_train:
@@ -152,7 +153,7 @@ def __set_argparse():
     parser.add_argument(
         "--full_finetuning",
         action='store_true',
-        help="True if you want to re-train all the model's weights. False if you just want to train the classifier weights.")
+        help="to re-train all the model's weights. Otherwhise just, the classifier weights will be updated.")
     
     last_prev_model = None
     parser.add_argument(
@@ -168,7 +169,7 @@ def __set_argparse():
     parser.add_argument(
         "--continue_last_train",
         action='store_true',
-        help="True, automatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
+        help="1utomatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
     parser.add_argument(
         "--dropout",
         type=float_between_0_and_1,
@@ -249,6 +250,11 @@ def __set_argparse():
         default=True,
         help="For Flair reuse the embedding if we already computed it"
     )
+    parser.add_argument(
+        "--noise_train_dataset",
+        action='store_true',
+        help="add tag noise in train dataset")
+    )
 
     return(parser)
 
@@ -262,7 +268,7 @@ def float_between_0_and_1(x):
         raise argparse.ArgumentTypeError("%r not in range [0.0, 1.0]"%(x,))
     return x
 
-def __dataloader(dataset, val_size, test_size, batch_size):
+def __dataloader(dataset, val_size, test_size, batch_size, noise=False):
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
     split_val = int(np.floor(val_size * dataset_size))
@@ -285,12 +291,21 @@ def __dataloader(dataset, val_size, test_size, batch_size):
     for k,v in num_items.items():
         weights_dict[k] = max_num_items/v
 
-    train_loader = DataLoader(
-        dataset, 
-        batch_size=batch_size, 
-        drop_last=True,
-        sampler=train_sampler
-    )
+    if noise:
+        dataset_noise = __noise_data(dataset, prob=0.02, random_state=1)
+        train_loader = DataLoader(
+            dataset_noise, 
+            batch_size=batch_size, 
+            drop_last=True,
+            sampler=train_sampler
+        )
+    else:
+        train_loader = DataLoader(
+            dataset, 
+            batch_size=batch_size, 
+            drop_last=True,
+            sampler=train_sampler
+        )
 
     val_loader = DataLoader(
         dataset, 
@@ -307,6 +322,24 @@ def __dataloader(dataset, val_size, test_size, batch_size):
     )
 
     return train_loader, val_loader, test_loader, weights_dict
+
+def __noise_data(dataset, prob=0.02, random_state=None):
+    
+    dataset_noise = copy.deepcopy(dataset)
+
+    rs = np.random.RandomState(random_state)
+
+    true_tags = dataset.tags
+    val = list(dataset.idx2tag.keys())
+
+    val_noise = torch.Tensor(rs.choice(val, size=true_tags.size()))
+
+    mask = torch.Tensor(rs.binomial(1, prob, size=true_tags.size()))
+    inv_mask = torch.ones(size=mask.size()) - mask
+
+    dataset_noise.tags = true_tags * inv_mask + val_noise * mask
+
+    return dataset_noise
 
 if __name__ == "__main__":
     main()
