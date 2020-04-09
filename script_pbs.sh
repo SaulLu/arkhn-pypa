@@ -27,5 +27,5 @@ python ./pypa.py \
     --modified_model \
     --full_finetuning \
     --batch_size 100 \
-    --ignore_out \
+    --noise_train_dataset \
     

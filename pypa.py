@@ -253,7 +253,7 @@ def __set_argparse():
     parser.add_argument(
         "--noise_train_dataset",
         action='store_true',
-        help="add tag noise in train dataset")
+        help="add tag noise in train dataset"
     )
 
     return(parser)
