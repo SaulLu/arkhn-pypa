@@ -21,6 +21,8 @@ from torch import nn
 from torch.nn import CrossEntropyLoss
 import numpy as np
 
+from torchcrf import CRF #https://github.com/kmkurn/pytorch-crf#egg=pytorch_crf
+
 from transformers import (
     BertModel,
     BertConfig, 
@@ -94,15 +96,16 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         self.weighted_loss = config_special['weighted_loss']
         self.weights_dict = config_special['weights_dict']
         self.label2id = config.label2id
+        self.list_weight = None
+        
+        self.ignore_index = -100
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
-        self.list_weight = None
         
-        self.ignore_index = -100
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.init_weights()
 
     def forward(
@@ -189,6 +192,55 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
             loss = loss_fct(active_logits, active_labels)
 
             outputs = (loss,) + outputs
+
+        return outputs  # (loss), scores, (hidden_states), (attentions)
+
+class BertForTokenClassificationCRF(BertPreTrainedModel):
+    def __init__(self, config):
+        super().__init__(config)
+        print("in bert modified")
+        self.num_labels = config.num_labels
+
+        self.bert = BertModel(config)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.position_wise_ff = nn.Linear(config.hidden_size, config.num_labels)
+        self.crf = CRF(num_tags=config.num_labels, batch_first=True)
+        
+        self.init_weights()
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+    ):
+        outputs = self.bert(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+        )
+
+        sequence_output = outputs[0]
+        sequence_output = self.dropout(sequence_output)
+        sequence_output = self.position_wise_ff(sequence_output)
+
+        if labels is not None:
+            if attention_mask is not None:
+                loss, logits = - self.crf(emissions=sequence_output, tags=labels, mask=attention_mask), self.crf.decode(emissions=sequence_output, mask=attention_mask)
+            else:
+                loss, logits = - self.crf(sequence_output, labels), self.crf.decode(sequence_output)
+            outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
+            outputs = (loss,) + outputs
+        else:
+            logits = self.crf.decode(sequence_output)
+            outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
 
         return outputs  # (loss), scores, (hidden_states), (attentions)
 

@@ -15,7 +15,7 @@ from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
-from src.models.bert_model_bis import BertForTokenClassificationModified
+from src.models.bert_model_bis import BertForTokenClassificationModified, BertForTokenClassificationCRF
 
 
 class TrainModel:
@@ -32,6 +32,7 @@ class TrainModel:
         saving_dir="data/results/",
         dropout=0.1,
         modified_model=False,
+        bert_crf = False,
         ignore_out_loss=False,
         weighted_loss=False,
         weight_decay=0,
@@ -76,6 +77,8 @@ class TrainModel:
         assert unused_kwargs == {}, f"Unused kwargs :{unused_kwargs}"
         if modified_model:
             self.model = BertForTokenClassificationModified(config, config_special)
+        elif bert_crf:
+            self.model = BertForTokenClassificationCRF(config)
         else:
             self.model = AutoModelForTokenClassification.from_config(config)
 
@@ -120,6 +123,7 @@ class TrainModel:
     def __set_optimizer(self, weight_decay):
         if self.full_finetuning:
             param_optimizer = list(self.model.named_parameters())
+            print(f"param_optimizer: {param_optimizer}")
             no_decay = ["bias", "gamma", "beta"]
             optimizer_grouped_parameters = [
                 {
@@ -137,6 +141,7 @@ class TrainModel:
                     "weight_decay_rate": 0.0,
                 },
             ]
+            print(f"optimizer_grouped_parameters: {optimizer_grouped_parameters}")
         else:
             param_optimizer = list(self.model.classifier.named_parameters())
             optimizer_grouped_parameters = [{"params": [p for n, p in param_optimizer]}]

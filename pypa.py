@@ -46,6 +46,7 @@ def main():
 
     dropout = args.dropout
     modified_model = args.modified_model
+    bert_crf = args.bert_crf
     noise = args.noise_train_dataset
 
     mode = args.mode
@@ -91,6 +92,7 @@ def main():
 	            saving_dir = saving_dir,
 	            dropout=dropout,
 	            modified_model=modified_model,
+                bert_crf = bert_crf,
 	            ignore_out_loss=ignore_out_loss,
 	            weighted_loss=weighted_loss,
 	            weight_decay=weight_decay,
@@ -255,6 +257,11 @@ def __set_argparse():
         "--noise_train_dataset",
         action='store_true',
         help="add tag noise in train dataset"
+    )
+    parser.add_argument(
+        "--bert_crf",
+        action='store_true',
+        help="use bert CRF"
     )
 
     return(parser)
