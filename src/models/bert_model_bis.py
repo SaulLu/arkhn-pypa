@@ -233,12 +233,22 @@ class BertForTokenClassificationCRF(BertPreTrainedModel):
 
         if labels is not None:
             if attention_mask is not None:
+                print(f"sequence_output: {sequence_output.size()}")
+                print(f"labels: {labels.size()}")
+                print(f"attention_mask: {attention_mask.size()}")
+                
                 attention_mask = attention_mask.to(torch.uint8)
-                loss, logits = - self.classifier(emissions=sequence_output, tags=labels, mask=attention_mask), self.classifier.decode(emissions=sequence_output, mask=attention_mask)
+                loss  = - self.classifier(emissions=sequence_output, tags=labels, mask=attention_mask)
+                logits = torch.Tensor(self.classifier.decode(emissions=sequence_output, mask=attention_mask))
             else:
-                loss, logits = - self.classifier(sequence_output, labels), self.classifier.decode(sequence_output)
+                loss,  = - self.classifier(sequence_output, labels)
+                logits = torch.Tensor(self.classifier.decode(sequence_output))
+            print(f"logits: {logits.size()}")
             outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
+            print(f"outputs: {outputs.size()}")
             outputs = (loss,) + outputs
+            print(f"outputs: {outputs.size()}")
+
         else:
             logits = self.classifier.decode(sequence_output)
             outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
