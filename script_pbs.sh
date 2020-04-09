@@ -21,11 +21,13 @@ source activate pypa_env
 
 # Run code
 python ./pypa.py \
-    --data_path  data/inputs/2009/dataframe_final_clean.csv \
     --n_epochs 1001 \
-    --pretrained_model 'monologg/biobert_v1.1_pubmed' \
-    --modified_model \
+    --data_path data/inputs/2009/dataframe_final_clean.csv \
     --full_finetuning \
     --batch_size 100 \
-    --noise_train_dataset \
+    --modified_model \
+    --pretrained_model 'monologg/biobert_v1.1_pubmed' \
+    --weighted_loss 'global' \
+    --l2_regularization 0,00001 \
+    --noise_train_dataset
     
