@@ -217,6 +217,10 @@ class TrainModel:
             curr_time = time.strftime("%Y%m%d_%H%M%S")
 
             curr_epoch_str = str(curr_epoch)
+            print(f"train_predictions: {Counter(train_predictions)")
+            print(f"train_true_labels: {Counter(train_true_labels)")
+            print(f"eval_predictions: {Counter(eval_predictions)")
+            print(f"eval_true_labels: {Counter(eval_true_labels)")
 
             train_conf_matrix = confusion_matrix(
                 train_predictions, train_true_labels, labels=labels_list
@@ -224,6 +228,8 @@ class TrainModel:
             eval_conf_matrix = confusion_matrix(
                 eval_predictions, eval_true_labels, labels=labels_list
             )
+            print(train_conf_matrix)
+            print(eval_conf_matrix)
             generate_confusion_matrix(
                 train_conf_matrix,
                 labels_list,
@@ -337,13 +343,13 @@ class TrainModel:
 
                 # print(f"num_same_flat: {num_same_flat_without}")
 
-                print(f"logits_flat : {Counter(logits_flat)}")
-                print(f"label_ids_flat : {Counter(label_ids_flat)}")
+                # print(f"logits_flat : {Counter(logits_flat)}")
+                # print(f"label_ids_flat : {Counter(label_ids_flat)}")
 
-                print(f"logits_without_o : {Counter(logits_without_o)}")
-                print(f"label_ids_without_o : {Counter(label_ids_without_o)}")
+                # print(f"logits_without_o : {Counter(logits_without_o)}")
+                # print(f"label_ids_without_o : {Counter(label_ids_without_o)}")
 
-                print(f"self.idx2tag : {self.idx2tag}")
+                # print(f"self.idx2tag : {self.idx2tag}")
                 
                 predictions_flat.extend(list(self.idx2tag[l] for l in logits_flat))
                 true_labels_flat.extend(list(self.idx2tag[l] for l in label_ids_flat))
