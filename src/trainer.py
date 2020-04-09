@@ -222,6 +222,10 @@ class TrainModel:
             print(f"eval_predictions: {Counter(eval_predictions)}")
             print(f"eval_true_labels: {Counter(eval_true_labels)}")
 
+            for i in range(len(eval_true_labels)):
+                if eval_true_labels[i]=='O':
+                    print(f"eval_true_labels: {eval_true_labels[i]}, eval_predictions: {eval_predictions[i]}")
+
             train_conf_matrix = confusion_matrix(
                 train_predictions, train_true_labels, labels=labels_list
             )
