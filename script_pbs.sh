@@ -25,6 +25,5 @@ python ./pypa.py \
     --data_path data/inputs/2009/dataframe_final_clean.csv \
     --full_finetuning \
     --batch_size 100 \
-    --bert_crf \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     
