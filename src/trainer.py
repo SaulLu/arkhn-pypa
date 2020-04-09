@@ -217,10 +217,10 @@ class TrainModel:
             curr_time = time.strftime("%Y%m%d_%H%M%S")
 
             curr_epoch_str = str(curr_epoch)
-            print(f"train_predictions: {Counter(train_predictions)")
-            print(f"train_true_labels: {Counter(train_true_labels)")
-            print(f"eval_predictions: {Counter(eval_predictions)")
-            print(f"eval_true_labels: {Counter(eval_true_labels)")
+            print(f"train_predictions: {Counter(train_predictions)}")
+            print(f"train_true_labels: {Counter(train_true_labels)}")
+            print(f"eval_predictions: {Counter(eval_predictions)}")
+            print(f"eval_true_labels: {Counter(eval_true_labels)}")
 
             train_conf_matrix = confusion_matrix(
                 train_predictions, train_true_labels, labels=labels_list
