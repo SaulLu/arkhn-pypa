@@ -347,7 +347,7 @@ class TrainModel:
                 predictions_without_o.extend(list(self.idx2tag[l] for l in logits_without_o))
                 true_labels_without_o.extend(list(self.idx2tag[l] for l in label_ids_without_o))
 
-                loss += tmp_loss.item()
+                loss += tmp_loss.mean().item()
                 
                 # print(f"accuracy: {accuracy}")
                 # print(f"accuracy_without_o: {accuracy_without_o}")
@@ -370,8 +370,8 @@ class TrainModel:
 
         return (
             loss / nb_steps,
-            accuracy / nb_steps,
-            accuracy_without_o / nb_steps,
+            accuracy,
+            accuracy_without_o,
             predictions_flat,
             predictions_without_o,
             true_labels_flat,
