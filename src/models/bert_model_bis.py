@@ -204,7 +204,7 @@ class BertForTokenClassificationCRF(BertPreTrainedModel):
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.position_wise_ff = nn.Linear(config.hidden_size, config.num_labels)
-        self.crf = CRF(num_tags=config.num_labels, batch_first=True)
+        self.classifier = CRF(num_tags=config.num_labels, batch_first=True)
         
         self.init_weights()
 
@@ -233,13 +233,14 @@ class BertForTokenClassificationCRF(BertPreTrainedModel):
 
         if labels is not None:
             if attention_mask is not None:
-                loss, logits = - self.crf(emissions=sequence_output, tags=labels, mask=attention_mask), self.crf.decode(emissions=sequence_output, mask=attention_mask)
+                attention_mask = attention_mask.to(torch.uint8)
+                loss, logits = - self.classifier(emissions=sequence_output, tags=labels, mask=attention_mask), self.classifier.decode(emissions=sequence_output, mask=attention_mask)
             else:
-                loss, logits = - self.crf(sequence_output, labels), self.crf.decode(sequence_output)
+                loss, logits = - self.classifier(sequence_output, labels), self.classifier.decode(sequence_output)
             outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
             outputs = (loss,) + outputs
         else:
-            logits = self.crf.decode(sequence_output)
+            logits = self.classifier.decode(sequence_output)
             outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
 
         return outputs  # (loss), scores, (hidden_states), (attentions)
