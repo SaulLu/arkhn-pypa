@@ -239,10 +239,10 @@ class BertForTokenClassificationCRF(BertPreTrainedModel):
                 
                 attention_mask = attention_mask.to(torch.uint8)
                 loss  = - self.classifier(emissions=sequence_output, tags=labels, mask=attention_mask)
-                logits = torch.Tensor(self.classifier.decode(emissions=sequence_output, mask=attention_mask))
+                logits = self.classifier.decode(emissions=sequence_output, mask=attention_mask)
             else:
                 loss,  = - self.classifier(sequence_output, labels)
-                logits = torch.Tensor(self.classifier.decode(sequence_output))
+                logits = self.classifier.decode(sequence_output)
             
             seq_lenght = max([len(logits[i]) for i in range(len(logits))])
             logits = np.array([np.pad(logits[i], (0, seq_lenght-len(logits[i])), mode='constant', constant_values=0) for i in range(len(logits))])
