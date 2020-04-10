@@ -27,30 +27,34 @@ def main():
     parser = __set_argparse()
     args = parser.parse_args()
 
-    val_size = args.val_size
-    test_size = args.test_size
-
-    assert val_size + test_size <=1, 'The sum of the proportions of the valid and the test set cannot be greater than 1'
-
-    n_epochs = args.n_epochs
-    batch_size = args.batch_size
-    weight_decay = args.l2_regularization
-
+    #Args for train and test mode
+    mode = args.mode
+    bert_crf = args.bert_crf
     data_path = args.data_path
     pretrained_model = args.pretrained_model
     path_previous_model = args.path_previous_model
-    full_finetuning = args.full_finetuning
-    continue_last_train = args.continue_last_train
+    modified_model = args.modified_model
+    dropout = args.dropout
     flair = args.flair
     reuse_emb = args.reuse_emb
 
-    dropout = args.dropout
-    modified_model = args.modified_model
-    
-    bert_crf = args.bert_crf
+    #args for train mode
+    full_finetuning = args.full_finetuning
+    continue_last_train = args.continue_last_train
+    n_epochs = args.n_epochs
+    batch_size = args.batch_size
+    weight_decay = args.l2_regularization
     noise = args.noise_train_dataset
+    val_size = args.val_size
+    test_size = args.test_size
+    weighted_loss = args.weighted_loss
+    if args.weighted_loss:
+        modified_model = True
 
-    mode = args.mode
+    assert val_size + test_size <=1, 'The sum of the proportions of the valid and the test set cannot be greater than 1'
+    assert weighted_loss and bert_crf, "You can't chose the loss function used with the CRF model for the moment"
+    assert path_previous_model and continue_last_train, "The optionnal arguments continue_last_train and path_previous_model aren't compatible"
+    assert flair and modified_model, "The optionnal arguments modified_model and flair aren't compatible"
 
     if not flair:
         dataset = NerDataset(
@@ -77,12 +81,6 @@ def main():
 
         continue_csv = (continue_last_train or path_previous_model)
 
-        ignore_out_loss = args.ignore_out
-        weighted_loss = args.weighted_loss
-
-        if args.ignore_out or args.weighted_loss:
-            modified_model = True
-
         if not flair:
             trainer = TrainModel(
 	            train_loader=train_loader, 
@@ -97,7 +95,6 @@ def main():
 	            dropout=dropout,
 	            modified_model=modified_model,
                 bert_crf = bert_crf,
-	            ignore_out_loss=ignore_out_loss,
 	            weighted_loss=weighted_loss,
 	            weight_decay=weight_decay,
 	            continue_csv=continue_csv,
@@ -212,7 +209,7 @@ def __set_argparse():
     parser.add_argument(
         "--weighted_loss",
         type=str,
-        choices=['global', 'less_out'],
+        choices=['global', 'less_out', 'ignore_out'],
         default=None,
         help=r"""By default, the loss used is CrossEntropy from nn.torch. 
             With x the output of the model and t the values to be predicted.
@@ -239,6 +236,11 @@ def __set_argparse():
                 L_{4}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
             with 
                 w_{t_{i}}= 0.5 if t_{i} describes class out 1 otherwise
+            
+            With ignore_out, L_{1} is replaced by L_{2} being : 
+                L_{2}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
+            with 
+                w_{t_{i}}= 0 if t_{i} describes class out 1 otherwise
             """)
     parser.add_argument(
         "--l2_regularization",
