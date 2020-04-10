@@ -132,7 +132,7 @@ class TrainModel:
                         for n, p in param_optimizer
                         if not any(nd in n for nd in no_decay)
                     ],
-                    "weight_decay": 0.0001,
+                    "weight_decay": weight_decay,
                 },
                 {
                     "params": [
