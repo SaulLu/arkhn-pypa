@@ -26,5 +26,3 @@ python ./pypa.py \
     --full_finetuning \
     --batch_size 100 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
-    --weighted_loss 'global' \
-    

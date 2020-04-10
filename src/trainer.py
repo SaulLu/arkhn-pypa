@@ -132,20 +132,20 @@ class TrainModel:
                         for n, p in param_optimizer
                         if not any(nd in n for nd in no_decay)
                     ],
-                    "weight_decay_rate": 0.01,
+                    "weight_decay": 0.01,
                 },
                 {
                     "params": [
                         p for n, p in param_optimizer if any(nd in n for nd in no_decay)
                     ],
-                    "weight_decay_rate": 0.0,
+                    "weight_decay": 0.0,
                 },
             ]
         else:
             param_optimizer = list(self.model.classifier.named_parameters())
             optimizer_grouped_parameters = [{"params": [p for n, p in param_optimizer]}]
 
-        return Adam(optimizer_grouped_parameters, lr=3e-5, weight_decay=weight_decay)
+        return Adam(optimizer_grouped_parameters, lr=3e-5)
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
         for curr_epoch in trange(n_epochs, desc="Epoch"):
