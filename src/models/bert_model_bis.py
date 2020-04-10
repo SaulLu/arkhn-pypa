@@ -187,7 +187,7 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
             if self.ignore_out_loss:
                 self.list_weight = self.get_weights_ignore_out()
 
-            loss_fct = CrossEntropyLoss(reduction='sum', weight=self.list_weight, ignore_index=self.ignore_index)
+            loss_fct = CrossEntropyLoss(weight=self.list_weight, ignore_index=self.ignore_index)
             
             loss = loss_fct(active_logits, active_labels)
 

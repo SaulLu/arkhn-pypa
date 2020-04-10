@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, RandomSampler
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from src.dataset import NerDataset
-from  src.dataset import FlairDataSet
+from src.dataset import FlairDataSet
 from src.trainer import TrainModel
 from src.flair_trainer import FlairTrainModel
 from src.utils.loader import get_path_last_model, set_saving_dir
@@ -291,8 +291,11 @@ def __dataloader(dataset, val_size, test_size, batch_size, noise=False):
     test_sampler = SubsetRandomSampler(test_indices)
 
     tags_train = dataset[train_indices][2]
-    num_items = Counter(torch.flatten(tags_train).cpu().numpy())
+    mask_train = dataset[train_indices][1]
+    number_mask = torch.sum(mask_train).item()
 
+    num_items = Counter(torch.flatten(tags_train).cpu().numpy())
+    num_items[dataset.tag2idx['O']] = num_items[dataset.tag2idx['O']] - number_mask 
     max_num_items = max(num_items.values())
 
     weights_dict = {}
