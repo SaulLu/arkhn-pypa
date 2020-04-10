@@ -296,8 +296,8 @@ def __dataloader(dataset, val_size, test_size, batch_size, noise=False):
     valid_sampler = SubsetRandomSampler(val_indices)
     test_sampler = SubsetRandomSampler(test_indices)
 
-    tags_train = dataset[train_indices][2]
-    mask_train = dataset[train_indices][1]
+    tags_train = dataset[train_indices][2] if isinstance(dataset,NerDataset) else dataset[train_indices][1]
+    mask_train = dataset[train_indices][1] if isinstance(dataset,NerDataset) else 0
     number_mask = torch.sum(mask_train).item()
 
     num_items = Counter(torch.flatten(tags_train).cpu().numpy())
