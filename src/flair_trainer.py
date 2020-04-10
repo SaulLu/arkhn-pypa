@@ -70,7 +70,9 @@ class FlairTrainModel:
         _, targets = train_loader.dataset.data.tensors
         t = targets.int().numpy()
         freq = np.bincount(t)
-        return torch.Tensor(1 - (freq/freq.sum()))
+        t = 1 - (freq/freq.sum())
+        t[self.tag2idx['O']] /= 10
+        return torch.Tensor(t)
 
 
     def __resume_training(self, path_model):
@@ -145,7 +147,7 @@ class FlairTrainModel:
             print(f"Train F1-Score without out: {train_f1_score_without_o}")
             print(f"Validation F1-Score without out: {eval_f1_score_without_o}")
 
-            labels_list = list(self.tag2idx.keys())
+            labels_list = [self.idx2tag[i] for i in range(len(self.idx2tag))]
 
             curr_time = time.strftime("%Y%m%d_%H%M%S")
 
