@@ -92,7 +92,6 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         super().__init__(config)
         print("in bert modified")
         self.num_labels = config.num_labels
-        self.ignore_out_loss = config_special['ignore_out_loss']
         self.weighted_loss = config_special['weighted_loss']
         self.weights_dict = config_special['weights_dict']
         self.label2id = config.label2id
@@ -184,7 +183,7 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
                 self.list_weight = self.get_weights_global()
             if self.weighted_loss=="less_out":
                 self.list_weight = self.get_weights_less_for_out()
-            if self.ignore_out_loss:
+            if self.weighted_loss=="ignore_out":
                 self.list_weight = self.get_weights_ignore_out()
 
             loss_fct = CrossEntropyLoss( weight=self.list_weight, ignore_index=self.ignore_index)
@@ -194,6 +193,40 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
             outputs = (loss,) + outputs
 
         return outputs  # (loss), scores, (hidden_states), (attentions)
+
+    def get_weights_batch(self, active_labels_array):
+        num_active_labels = np.sum( active_labels_array!= self.ignore_index)
+        weighted_dict = dict()
+        for k,v in self.label2id.items():
+            weighted_dict[k] = 1 - np.sum( active_labels_array== v)/num_active_labels
+
+        weighted_dict['O'] = weighted_dict['O'] / 10.
+
+        list_weight = [None for _ in range(len(self.label2id.keys()))]
+        for k in self.label2id.keys():
+            list_weight[k] = weighted_dict[k]
+        list_weight = list_weight / sum(list_weight)
+        list_weight = torch.tensor(list_weight).to(self.device).float()
+        return list_weight
+    
+    def get_weights_global(self):
+        list_weight = [None for _ in range(len(self.label2id.keys()))]
+        for k,v in self.weights_dict.items():
+            list_weight[k] = v
+        list_weight = torch.tensor(list_weight).to(self.device).float()
+        return list_weight
+
+    def get_weights_less_for_out(self):
+        list_weight = [1. for _ in range(len(self.label2id.keys()))]
+        list_weight[self.label2id['O']] = 0.5
+        list_weight = torch.tensor(list_weight).to(self.device).float()
+        return list_weight
+    
+    def get_weights_ignore_out(self):
+        list_weight = [1. for _ in range(len(self.label2id.keys()))]
+        list_weight[self.label2id['O']] = 1e-20
+        list_weight = torch.tensor(list_weight).to(self.device).float()
+        return list_weight
 
 class BertForTokenClassificationCRF(BertPreTrainedModel):
     def __init__(self, config):
@@ -261,36 +294,3 @@ class BertForTokenClassificationCRF(BertPreTrainedModel):
 
         return outputs  # (loss), scores, (hidden_states), (attentions)
 
-    def get_weights_batch(self, active_labels_array):
-        num_active_labels = np.sum( active_labels_array!= self.ignore_index)
-        weighted_dict = dict()
-        for k,v in self.label2id.items():
-            weighted_dict[k] = 1 - np.sum( active_labels_array== v)/num_active_labels
-
-        weighted_dict['O'] = weighted_dict['O'] / 10.
-
-        list_weight = [None for _ in range(len(self.label2id.keys()))]
-        for k in self.label2id.keys():
-            list_weight[k] = weighted_dict[k]
-        list_weight = list_weight / sum(list_weight)
-        list_weight = torch.tensor(list_weight).to(self.device).float()
-        return list_weight
-    
-    def get_weights_global(self):
-        list_weight = [None for _ in range(len(self.label2id.keys()))]
-        for k,v in self.weights_dict.items():
-            list_weight[k] = v
-        list_weight = torch.tensor(list_weight).to(self.device).float()
-        return list_weight
-
-    def get_weights_less_for_out(self):
-        list_weight = [1. for _ in range(len(self.label2id.keys()))]
-        list_weight[self.label2id['O']] = 0.5
-        list_weight = torch.tensor(list_weight).to(self.device).float()
-        return list_weight
-    
-    def get_weights_ignore_out(self):
-        list_weight = [1. for _ in range(len(self.label2id.keys()))]
-        list_weight[self.label2id['O']] = 1e-20
-        list_weight = torch.tensor(list_weight).to(self.device).float()
-        return list_weight

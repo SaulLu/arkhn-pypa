@@ -27,4 +27,4 @@ python ./pypa.py \
     --batch_size 100 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
-    --ignore_out \
+    --weighted_loss 'global' \

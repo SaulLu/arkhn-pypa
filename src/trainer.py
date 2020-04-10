@@ -33,7 +33,6 @@ class TrainModel:
         dropout=0.1,
         modified_model=False,
         bert_crf = False,
-        ignore_out_loss=False,
         weighted_loss=False,
         weight_decay=0,
         continue_csv=False,
@@ -69,7 +68,6 @@ class TrainModel:
         )
         print(f"config : {config}")
         config_special = {
-            "ignore_out_loss": ignore_out_loss,
             "weighted_loss": weighted_loss,
             "weights_dict": weights_dict,
         }
