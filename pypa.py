@@ -46,6 +46,7 @@ def main():
 
     dropout = args.dropout
     modified_model = args.modified_model
+    
     bert_crf = args.bert_crf
     noise = args.noise_train_dataset
 
@@ -78,6 +79,9 @@ def main():
 
         ignore_out_loss = args.ignore_out
         weighted_loss = args.weighted_loss
+
+        if args.ignore_out or args.weighted_loss:
+            modified_model = True
 
         if not flair:
             trainer = TrainModel(
