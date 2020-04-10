@@ -52,9 +52,9 @@ def main():
         modified_model = True
 
     assert val_size + test_size <=1, 'The sum of the proportions of the valid and the test set cannot be greater than 1'
-    assert weighted_loss and bert_crf, "You can't chose the loss function used with the CRF model for the moment"
-    assert path_previous_model and continue_last_train, "The optionnal arguments continue_last_train and path_previous_model aren't compatible"
-    assert flair and modified_model, "The optionnal arguments modified_model and flair aren't compatible"
+    assert not (weighted_loss and bert_crf), "You can't chose the loss function used with the CRF model for the moment"
+    assert not (path_previous_model and continue_last_train), "The optionnal arguments continue_last_train and path_previous_model aren't compatible"
+    assert not (flair and modified_model), "The optionnal arguments modified_model and flair aren't compatible"
 
     if not flair:
         dataset = NerDataset(
