@@ -231,7 +231,7 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
 class BertForTokenClassificationCRF(BertPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
-        print("in bert modified")
+        print("\n\nUse CRF\n\n")
         self.num_labels = config.num_labels
 
         self.bert = BertModel(config)
