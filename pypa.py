@@ -298,8 +298,7 @@ def __dataloader(dataset, val_size, test_size, batch_size, noise=False):
 
     tags_train = dataset[train_indices][2] if isinstance(dataset,NerDataset) else dataset[train_indices][1]
     mask_train = dataset[train_indices][1] if isinstance(dataset,NerDataset) else 0
-    number_mask = torch.sum(mask_train).item()
-
+    number_mask = torch.sum(mask_train).item() if isinstance(dataset,NerDataset) else 0
     num_items = Counter(torch.flatten(tags_train).cpu().numpy())
     num_items[dataset.tag2idx['O']] = num_items[dataset.tag2idx['O']] - number_mask 
     max_num_items = max(num_items.values())
