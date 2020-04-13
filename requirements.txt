@@ -13,4 +13,3 @@ scikit_learn==0.22.2.post1
 transformers==2.5.1
 tensorflow==1.15.0 # python 3.7.6 needed for this version
 flair
-

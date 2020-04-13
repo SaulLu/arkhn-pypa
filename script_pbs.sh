@@ -1,7 +1,7 @@
 #PBS -S /bin/bash
 #PBS -N biobert_2009_fullfinetuning
 #PBS -P arkhn-3a
-#PBS -l walltime=08:00:00
+#PBS -l walltime=02:00:00
 #PBS -l select=1:ngpus=1:mem=32gb
 #PBS -o output_pypa.txt
 #PBS -e error_pypa.txt
@@ -21,9 +21,10 @@ source activate pypa_env
 
 # Run code
 python ./pypa.py \
-    --data_path  data/inputs/2009/dataframe_final_clean.csv \
-    --n_epochs 1001 \
+    --n_epochs 25 \
+    --data_path data/inputs/2009/dataframe_final_clean.csv \
+    --full_finetuning \
+    --batch_size 100 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
     --modified_model \
-    --batch_size 100
-    
+    --noise_train_dataset \

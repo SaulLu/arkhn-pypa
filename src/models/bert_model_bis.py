@@ -21,6 +21,8 @@ from torch import nn
 from torch.nn import CrossEntropyLoss
 import numpy as np
 
+from .torchcrf import CRF #https://github.com/kmkurn/pytorch-crf#egg=pytorch_crf
+
 from transformers import (
     BertModel,
     BertConfig, 
@@ -90,19 +92,19 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         super().__init__(config)
         print("in bert modified")
         self.num_labels = config.num_labels
-        self.ignore_out_loss = config_special['ignore_out_loss']
         self.weighted_loss = config_special['weighted_loss']
         self.weights_dict = config_special['weights_dict']
         self.label2id = config.label2id
+        self.list_weight = None
+        
+        self.ignore_index = -100
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
-        self.list_weight = None
         
-        self.ignore_index = -100
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.init_weights()
 
     def forward(
@@ -161,8 +163,6 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
 
         outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
         if labels is not None:
-            if self.ignore_out_loss:
-                self.ignore_index=self.label2id['O']
             
             # Only keep active parts of the loss
             if attention_mask is not None:
@@ -183,8 +183,10 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
                 self.list_weight = self.get_weights_global()
             if self.weighted_loss=="less_out":
                 self.list_weight = self.get_weights_less_for_out()
+            if self.weighted_loss=="ignore_out":
+                self.list_weight = self.get_weights_ignore_out()
 
-            loss_fct = CrossEntropyLoss(weight=self.list_weight, ignore_index=self.ignore_index)
+            loss_fct = CrossEntropyLoss( weight=self.list_weight, ignore_index=self.ignore_index)
             
             loss = loss_fct(active_logits, active_labels)
 
@@ -219,3 +221,76 @@ class BertForTokenClassificationModified(BertPreTrainedModel):
         list_weight[self.label2id['O']] = 0.5
         list_weight = torch.tensor(list_weight).to(self.device).float()
         return list_weight
+    
+    def get_weights_ignore_out(self):
+        list_weight = [1. for _ in range(len(self.label2id.keys()))]
+        list_weight[self.label2id['O']] = 1e-20
+        list_weight = torch.tensor(list_weight).to(self.device).float()
+        return list_weight
+
+class BertForTokenClassificationCRF(BertPreTrainedModel):
+    def __init__(self, config):
+        super().__init__(config)
+        print("\n\nUse CRF\n\n")
+        self.num_labels = config.num_labels
+
+        self.bert = BertModel(config)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.position_wise_ff = nn.Linear(config.hidden_size, config.num_labels)
+        self.classifier = CRF(num_tags=config.num_labels, batch_first=True)
+        
+        self.init_weights()
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+    ):
+        outputs = self.bert(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+        )
+
+        sequence_output = outputs[0]
+        sequence_output = self.dropout(sequence_output)
+        sequence_output = self.position_wise_ff(sequence_output)
+
+        if labels is not None:
+            if attention_mask is not None:
+                print(f"sequence_output: {sequence_output.size()}")
+                print(f"labels: {labels.size()}")
+                print(f"attention_mask: {attention_mask.size()}")
+                
+                attention_mask = attention_mask.to(torch.uint8)
+                loss  = - self.classifier(emissions=sequence_output, tags=labels, mask=attention_mask)
+                logits = self.classifier.decode(emissions=sequence_output, mask=attention_mask)
+            else:
+                loss,  = - self.classifier(sequence_output, labels)
+                logits = self.classifier.decode(sequence_output)
+            
+            seq_lenght = max([len(logits[i]) for i in range(len(logits))])
+            logits = np.array([np.pad(logits[i], (0, seq_lenght-len(logits[i])), mode='constant', constant_values=0) for i in range(len(logits))])
+            logits = torch.tensor(logits)
+
+            # print(f"logits: {logits.size()}")
+            outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
+            outputs = (loss,) + outputs
+
+        else:
+            logits = self.classifier.decode(sequence_output)
+
+            seq_lenght = max([len(logits[i]) for i in range(len(logits))])
+            logits = np.array([np.pad(logits[i], (0, seq_lenght-len(logits[i])), mode='constant', constant_values=0) for i in range(len(logits))])
+            logits = torch.tensor(logits)
+
+        return outputs  # (loss), scores, (hidden_states), (attentions)
+

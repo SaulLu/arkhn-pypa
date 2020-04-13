@@ -15,7 +15,7 @@ from tqdm import trange
 from sklearn.metrics import confusion_matrix
 
 from src.utils.display import generate_confusion_matrix
-from src.models.bert_model_bis import BertForTokenClassificationModified
+from src.models.bert_model_bis import BertForTokenClassificationModified, BertForTokenClassificationCRF
 
 
 class TrainModel:
@@ -32,7 +32,7 @@ class TrainModel:
         saving_dir="data/results/",
         dropout=0.1,
         modified_model=False,
-        ignore_out_loss=False,
+        bert_crf = False,
         weighted_loss=False,
         weight_decay=0,
         continue_csv=False,
@@ -51,6 +51,7 @@ class TrainModel:
         self.full_finetuning = full_finetuning
         self.tag2idx = tag2idx
         self.idx2tag = idx2tag
+        self.bert_crf = bert_crf
 
         self.__train_loader = train_loader
         self.__val_loader = val_loader
@@ -67,7 +68,6 @@ class TrainModel:
         )
         print(f"config : {config}")
         config_special = {
-            "ignore_out_loss": ignore_out_loss,
             "weighted_loss": weighted_loss,
             "weights_dict": weights_dict,
         }
@@ -76,6 +76,8 @@ class TrainModel:
         assert unused_kwargs == {}, f"Unused kwargs :{unused_kwargs}"
         if modified_model:
             self.model = BertForTokenClassificationModified(config, config_special)
+        elif self.bert_crf:
+            self.model = BertForTokenClassificationCRF(config)
         else:
             self.model = AutoModelForTokenClassification.from_config(config)
 
@@ -128,20 +130,20 @@ class TrainModel:
                         for n, p in param_optimizer
                         if not any(nd in n for nd in no_decay)
                     ],
-                    "weight_decay_rate": 0.01,
+                    "weight_decay": weight_decay,
                 },
                 {
                     "params": [
                         p for n, p in param_optimizer if any(nd in n for nd in no_decay)
                     ],
-                    "weight_decay_rate": 0.0,
+                    "weight_decay": 0.0,
                 },
             ]
         else:
             param_optimizer = list(self.model.classifier.named_parameters())
             optimizer_grouped_parameters = [{"params": [p for n, p in param_optimizer]}]
 
-        return Adam(optimizer_grouped_parameters, lr=3e-5, weight_decay=weight_decay)
+        return Adam(optimizer_grouped_parameters, lr=3e-5)
 
     def train(self, n_epochs=20, max_grad_norm=1.0):
         for curr_epoch in trange(n_epochs, desc="Epoch"):
@@ -280,11 +282,6 @@ class TrainModel:
                 )
 
         self.__start_epoch = self.__start_epoch + n_epochs
-
-    def __flat_accuracy(self, preds, labels):
-        pred_flat = np.argmax(preds, axis=2).flatten()
-        labels_flat = labels.flatten()
-        return np.sum(pred_flat == labels_flat) / len(labels_flat)
     
     def __accuracy(self, pred_flat, labels_flat):
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
@@ -311,9 +308,14 @@ class TrainModel:
 
                 logits = logits.detach().cpu().numpy()
                 label_ids = tags.to("cpu").numpy()
-
-                logits_flat = np.argmax(logits, axis=2).flatten()
-                label_ids_flat = label_ids.flatten()
+                
+                if self.bert_crf:
+                    logits_flat = np.array([logits[i][j] for i in range(len(logits)) for j in range(logits.shape[1]) if mask[i][j]])
+                else:
+                    logits = np.argmax(logits, axis=2)
+                    logits_flat = np.array([logits[i][j] for i in range(len(logits)) for j in range(logits.shape[1]) if mask[i][j]])
+                
+                label_ids_flat = np.array([label_ids[i][j] for i in range(len(label_ids)) for j in range(label_ids.shape[1]) if mask[i][j]])
 
                 # print(f"logits_flat size: {logits_flat.shape}")
                 # print(f"label_ids_flat size: {label_ids_flat.shape}")
@@ -333,7 +335,7 @@ class TrainModel:
                 logits_without_o = np.array(logits_without_o)
                 label_ids_without_o = np.array(label_ids_without_o)
 
-                num_same_flat_without = np.sum(logits_without_o == label_ids_without_o)
+                # num_same_flat_without = np.sum(logits_without_o == label_ids_without_o)
 
                 # print(f"num_same_flat: {num_same_flat_without}")
                 
@@ -343,27 +345,31 @@ class TrainModel:
                 predictions_without_o.extend(list(self.idx2tag[l] for l in logits_without_o))
                 true_labels_without_o.extend(list(self.idx2tag[l] for l in label_ids_without_o))
 
-                tmp_accuracy_flat = self.__accuracy(logits_flat, label_ids_flat)
-
                 loss += tmp_loss.mean().item()
-                accuracy += tmp_accuracy_flat
-                accuracy_without_o += self.__accuracy(
-                    logits_without_o, label_ids_without_o
-                )
-
+                
                 # print(f"accuracy: {accuracy}")
                 # print(f"accuracy_without_o: {accuracy_without_o}")
 
                 nb_sentences += input_ids.size(0)
                 nb_steps += 1
-        
+
+        predictions_flat_array = np.array(predictions_flat)
+        true_labels_flat_array = np.array(true_labels_flat)
+        predictions_without_o_array = np.array(predictions_without_o)
+        true_labels_without_o_array = np.array(true_labels_without_o)
+
+        accuracy = self.__accuracy(predictions_flat_array, true_labels_flat_array)
+        accuracy_without_o += self.__accuracy(
+                    predictions_without_o_array, true_labels_without_o_array
+                )
+
         print(f"predictions_flat : {Counter(predictions_flat)}")
         print(f"true_labels_flat : {Counter(true_labels_flat)}")
 
         return (
             loss / nb_steps,
-            accuracy / nb_steps,
-            accuracy_without_o / nb_steps,
+            accuracy,
+            accuracy_without_o,
             predictions_flat,
             predictions_without_o,
             true_labels_flat,

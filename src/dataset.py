@@ -1,13 +1,14 @@
 import pandas as pd
 import torch
 import os
+import numpy as np
+
 from torch.utils.data import Dataset, TensorDataset
 from keras.preprocessing.sequence import pad_sequences
 from flair.embeddings import WordEmbeddings, FlairEmbeddings, StackedEmbeddings
 from flair.data import Sentence
 import flair
 from transformers import AutoTokenizer
-import os
 
 class NerDataset(Dataset):
     """
@@ -34,7 +35,7 @@ class NerDataset(Dataset):
         getter = SentenceGetter(data_path, encoding)
 
         self.labels = [[s[1] for s in sent] for sent in getter.sentences]
-        self.tag_vals = list(set([l for labels in self.labels for l in labels]))
+        self.tag_vals = sorted(list(set([l for labels in self.labels for l in labels])))
         self.tag2idx = {t: i for i, t in enumerate(self.tag_vals)}
         self.idx2tag = {v: k for k, v in self.tag2idx.items()}
 

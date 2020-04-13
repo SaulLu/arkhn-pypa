@@ -1,13 +1,14 @@
 import argparse
 import numpy as np
 from collections import Counter
+import copy
 
 import torch
 from torch.utils.data import DataLoader, RandomSampler
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from src.dataset import NerDataset
-from  src.dataset import FlairDataSet
+from src.dataset import FlairDataSet
 from src.trainer import TrainModel
 from src.flair_trainer import FlairTrainModel
 from src.utils.loader import get_path_last_model, set_saving_dir
@@ -26,27 +27,34 @@ def main():
     parser = __set_argparse()
     args = parser.parse_args()
 
-    val_size = args.val_size
-    test_size = args.test_size
-
-    assert val_size + test_size <=1, 'The sum of the proportions of the valid and the test set cannot be greater than 1'
-
-    n_epochs = args.n_epochs
-    batch_size = args.batch_size
-    weight_decay = args.l2_regularization
-
+    #Args for train and test mode
+    mode = args.mode
+    bert_crf = args.bert_crf
     data_path = args.data_path
     pretrained_model = args.pretrained_model
     path_previous_model = args.path_previous_model
-    full_finetuning = args.full_finetuning
-    continue_last_train = args.continue_last_train
+    modified_model = args.modified_model
+    dropout = args.dropout
     flair = args.flair
     reuse_emb = args.reuse_emb
 
-    dropout = args.dropout
-    modified_model = args.modified_model
+    #args for train mode
+    full_finetuning = args.full_finetuning
+    continue_last_train = args.continue_last_train
+    n_epochs = args.n_epochs
+    batch_size = args.batch_size
+    weight_decay = args.l2_regularization
+    noise = args.noise_train_dataset
+    val_size = args.val_size
+    test_size = args.test_size
+    weighted_loss = args.weighted_loss
+    if args.weighted_loss:
+        modified_model = True
 
-    mode = args.mode
+    assert val_size + test_size <=1, 'The sum of the proportions of the valid and the test set cannot be greater than 1'
+    assert not (weighted_loss and bert_crf), "You can't chose the loss function used with the CRF model for the moment"
+    assert not (path_previous_model and continue_last_train), "The optionnal arguments continue_last_train and path_previous_model aren't compatible"
+    assert not (flair and modified_model), "The optionnal arguments modified_model and flair aren't compatible"
 
     if not flair:
         dataset = NerDataset(
@@ -62,7 +70,7 @@ def main():
             reuse_emb=reuse_emb
         )
 
-    train_loader, val_loader, test_loader, weights_dict = __dataloader(dataset, val_size, test_size, batch_size)
+    train_loader, val_loader, test_loader, weights_dict = __dataloader(dataset, val_size, test_size, batch_size, noise=noise)
 
     if mode == 'train':
         if continue_last_train:
@@ -72,9 +80,6 @@ def main():
         saving_dir = set_saving_dir(path_previous_model, pretrained_model, data_path)
 
         continue_csv = (continue_last_train or path_previous_model)
-
-        ignore_out_loss = args.ignore_out
-        weighted_loss = args.weighted_loss
 
         if not flair:
             trainer = TrainModel(
@@ -89,7 +94,7 @@ def main():
 	            saving_dir = saving_dir,
 	            dropout=dropout,
 	            modified_model=modified_model,
-	            ignore_out_loss=ignore_out_loss,
+                bert_crf = bert_crf,
 	            weighted_loss=weighted_loss,
 	            weight_decay=weight_decay,
 	            continue_csv=continue_csv,
@@ -152,7 +157,7 @@ def __set_argparse():
     parser.add_argument(
         "--full_finetuning",
         action='store_true',
-        help="True if you want to re-train all the model's weights. False if you just want to train the classifier weights.")
+        help="to re-train all the model's weights. Otherwhise just, the classifier weights will be updated.")
     
     last_prev_model = None
     parser.add_argument(
@@ -168,7 +173,7 @@ def __set_argparse():
     parser.add_argument(
         "--continue_last_train",
         action='store_true',
-        help="True, automatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
+        help="1utomatically load the last modified file in the data/parameters/intermediate folder. False, does nothing.")
     parser.add_argument(
         "--dropout",
         type=float_between_0_and_1,
@@ -181,13 +186,62 @@ def __set_argparse():
     parser.add_argument(
         "--ignore_out",
         action='store_true',
-        help="Ignores out-type labels in the loss calculation")
+        help=r"""By default, the loss used is CrossEntropy from nn.torch. 
+            With x the output of the model and t the values to be predicted.
+            If 
+            x= [x_{1} , - , x_{n}] = 
+            [[p_{1,1}, - , p_{1,k}],\\
+            [| , - , |],\\
+            [p_{n,1} , - , p_{n,k}]]
+            and 
+            t = [t_{1} , - , t_{n}]
+            So 
+                L(x,t) = mean_{i}(L_{1}(x_{i}, t_{i}))
+            with 
+                L_{1}(x_{i}, t_{i})=-\log\left(\frac{\exp(p_{i,t_{i}})}{\sum_j \exp(p_{i,j})}\right).
+            
+            With ignore_out, L_{1} is replaced by L_{2} being : 
+                L_{2}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
+            with 
+                w_{t_{i}}= 0 if t_{i} describes class out 1 otherwise
+            """
+            )
     parser.add_argument(
         "--weighted_loss",
         type=str,
-        choices=['batch','global', 'less_out'],
+        choices=['global', 'less_out', 'ignore_out'],
         default=None,
-        help="XXXXXXXXXXXXX")
+        help=r"""By default, the loss used is CrossEntropy from nn.torch. 
+            With x the output of the model and t the values to be predicted.
+            If 
+            x= [x_{1} , - , x_{n}] = 
+            [[p_{1,1}, - , p_{1,k}],\\
+            [| , - , |],\\
+            [p_{n,1} , - , p_{n,k}]]
+            and 
+            t = [t_{1} , - , t_{n}]
+            So 
+                L(x,t) = mean_{i}(L_{1}(x_{i}, t_{i}))
+            with 
+                L_{1}(x_{i}, t_{i})=-\log\left(\frac{\exp(p_{i,t_{i}})}{\sum_j \exp(p_{i,j})}\right).
+            
+            With global, L_{1} is replaced by L_{3} being : 
+                L_{3}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
+            with 
+                w_{t_{i}}= \frac{max_{j}(num_t_{j})}{num_t_{i}} 
+            where 
+            num_t_{i} is the total number of t_{i} in the train set.
+
+            With less_out, L_{1} is replaced by L_{4} being : 
+                L_{4}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
+            with 
+                w_{t_{i}}= 0.5 if t_{i} describes class out 1 otherwise
+            
+            With ignore_out, L_{1} is replaced by L_{2} being : 
+                L_{2}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i})
+            with 
+                w_{t_{i}}= 0 if t_{i} describes class out 1 otherwise
+            """)
     parser.add_argument(
         "--l2_regularization",
         type=float,
@@ -205,6 +259,16 @@ def __set_argparse():
         default=True,
         help="For Flair reuse the embedding if we already computed it"
     )
+    parser.add_argument(
+        "--noise_train_dataset",
+        action='store_true',
+        help="add tag noise in train dataset"
+    )
+    parser.add_argument(
+        "--bert_crf",
+        action='store_true',
+        help="use bert CRF"
+    )
 
     return(parser)
 
@@ -218,7 +282,7 @@ def float_between_0_and_1(x):
         raise argparse.ArgumentTypeError("%r not in range [0.0, 1.0]"%(x,))
     return x
 
-def __dataloader(dataset, val_size, test_size, batch_size):
+def __dataloader(dataset, val_size, test_size, batch_size, noise=False):
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
     split_val = int(np.floor(val_size * dataset_size))
@@ -233,20 +297,32 @@ def __dataloader(dataset, val_size, test_size, batch_size):
     test_sampler = SubsetRandomSampler(test_indices)
 
     tags_train = dataset[train_indices][2] if isinstance(dataset,NerDataset) else dataset[train_indices][1]
-    num_items = Counter(torch.flatten(tags_train).cpu().numpy())
+    mask_train = dataset[train_indices][1] if isinstance(dataset,NerDataset) else 0
+    number_mask = torch.sum(mask_train).item()
 
+    num_items = Counter(torch.flatten(tags_train).cpu().numpy())
+    num_items[dataset.tag2idx['O']] = num_items[dataset.tag2idx['O']] - number_mask 
     max_num_items = max(num_items.values())
 
     weights_dict = {}
     for k,v in num_items.items():
         weights_dict[k] = max_num_items/v
 
-    train_loader = DataLoader(
-        dataset, 
-        batch_size=batch_size, 
-        drop_last=True,
-        sampler=train_sampler
-    )
+    if noise:
+        dataset_noise = __noise_data(dataset, prob=0.05, random_state=1)
+        train_loader = DataLoader(
+            dataset_noise, 
+            batch_size=batch_size, 
+            drop_last=True,
+            sampler=train_sampler
+        )
+    else:
+        train_loader = DataLoader(
+            dataset, 
+            batch_size=batch_size, 
+            drop_last=True,
+            sampler=train_sampler
+        )
 
     val_loader = DataLoader(
         dataset, 
@@ -263,6 +339,24 @@ def __dataloader(dataset, val_size, test_size, batch_size):
     )
 
     return train_loader, val_loader, test_loader, weights_dict
+
+def __noise_data(dataset, prob=0.02, random_state=None):
+    
+    dataset_noise = copy.deepcopy(dataset)
+
+    rs = np.random.RandomState(random_state)
+
+    true_tags = dataset.tags
+    val = list(dataset.idx2tag.keys())
+
+    val_noise = torch.Tensor(rs.choice(val, size=true_tags.size()))
+
+    mask = torch.Tensor(rs.binomial(1, prob, size=true_tags.size()))
+    inv_mask = torch.ones(size=mask.size()) - mask
+
+    dataset_noise.tags = true_tags * inv_mask + val_noise * mask
+
+    return dataset_noise
 
 if __name__ == "__main__":
     main()
