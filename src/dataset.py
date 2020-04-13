@@ -113,9 +113,18 @@ class FlairDataSet(Dataset):
         self.idx2tag = {v: k for k, v in self.tag2idx.items()}
         self.stacked_embeddings = None
         self.init_emb()
+        print('tag2idx', self.tag2idx)
+        print('idx2tag', self.idx2tag)
+
 
         if reuse_emb and os.path.isfile(emb_path):
-            self.data = torch.load(emb_path)
+            self.tokens = torch.load(emb_path)
+
+            self.tags = torch.Tensor([[self.tag2idx.get(l) for l in lab] for lab in self.labels]).flatten()
+            self.data = TensorDataset(self.tokens, self.tags)
+            print('self.labels', self.labels[0])
+            print('self.tags', self.tags[:30])
+
             self._len = self.data.__len__()
             return
 
@@ -145,7 +154,7 @@ class FlairDataSet(Dataset):
 
         self.data = TensorDataset(self.tokens, self.tags)
 
-        torch.save(self.data, emb_path)
+        torch.save(self.tokens, emb_path)
         print('token size', self.tokens.size(), 'tags size', self.tags.size() )
         print('Saved embeddings to ' + emb_path)
 
