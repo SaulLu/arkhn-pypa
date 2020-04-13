@@ -22,9 +22,8 @@ source activate pypa_env
 # Run code
 python ./pypa.py \
     --n_epochs 1001\
-    --data_path data/inputs/2009/dataframe_final_clean.csv \
+    --data_path data/inputs/2009/dataframe_final_clean_less_tag.csv \
     --full_finetuning \
     --batch_size 100 \
     --pretrained_model 'monologg/biobert_v1.1_pubmed' \
-    --bert_crf \
     --l2_regularization 1e-4
