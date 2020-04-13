@@ -119,8 +119,8 @@ class FlairDataSet(Dataset):
 
         if reuse_emb and os.path.isfile(emb_path):
             self.tokens = torch.load(emb_path)
-
-            self.tags = torch.Tensor([[self.tag2idx.get(l) for l in lab] for lab in self.labels]).flatten()
+            labels = sum(self.labels, [])
+            self.tags = torch.Tensor([self.tag2idx.get(l) for l in labels])
             self.data = TensorDataset(self.tokens, self.tags)
             print('self.labels', self.labels[0])
             print('self.tags', self.tags[:30])
@@ -146,10 +146,9 @@ class FlairDataSet(Dataset):
                 pre = ' '.join([s[0] for s in getter.sentences[i - 1]])
 
             tokens += self.embed_sent(pre, pre_len, sent, sent_len, next_s, next_len)
-            #labels += [s[1] for s in getter.sentences[i]]
 
-        #self.tags = torch.Tensor([self.tag2idx.get(l) for l in labels])
-        self.tags = torch.Tensor([[self.tag2idx.get(l) for l in lab] for lab in self.labels]).flatten()
+        labels = sum(self.labels, [])
+        self.tags = torch.Tensor([self.tag2idx.get(l) for l in labels])
         self.tokens = torch.cat(tokens)
 
         self.data = TensorDataset(self.tokens, self.tags)
