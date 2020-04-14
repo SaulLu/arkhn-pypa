@@ -9,6 +9,7 @@ import flair
 from transformers import AutoTokenizer
 import os
 
+
 class NerDataset(Dataset):
     """
     Dataset customised for the tagger model
@@ -98,8 +99,9 @@ class FlairDataSet(Dataset):
 
     def __init__(self,
                  data_path,
+                 reuse_emb,
                  encoding="latin1",
-                 reuse_emb=True
+
                  ):
         emb_path = os.path.join(os.path.dirname(data_path), "last_computed_dataset.pt")
 
@@ -115,7 +117,6 @@ class FlairDataSet(Dataset):
         self.init_emb()
         print('tag2idx', self.tag2idx)
         print('idx2tag', self.idx2tag)
-
 
         if reuse_emb and os.path.isfile(emb_path):
             self.tokens = torch.load(emb_path)
@@ -150,11 +151,12 @@ class FlairDataSet(Dataset):
         labels = sum(self.labels, [])
         self.tags = torch.Tensor([self.tag2idx.get(l) for l in labels])
         self.tokens = torch.cat(tokens)
+        print('token size', self.tokens.size(), 'tags size', self.tags.size())
 
         self.data = TensorDataset(self.tokens, self.tags)
 
         torch.save(self.tokens, emb_path)
-        print('token size', self.tokens.size(), 'tags size', self.tags.size() )
+        print('token size', self.tokens.size(), 'tags size', self.tags.size())
         print('Saved embeddings to ' + emb_path)
 
         self._len = len(self.labels)  # to check
@@ -167,7 +169,7 @@ class FlairDataSet(Dataset):
 
     def init_emb(self):
         # init standard GloVe embedding
-        flair.device = torch.device("cpu")
+        flair.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         glove_embedding = WordEmbeddings('glove')
 
         # init Flair forward and backwards embeddings
