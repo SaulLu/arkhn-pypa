@@ -18,7 +18,7 @@ pip install -r requirements.txt
 
 Two models architectures are available for training
 
-### Model 1: Bert
+### Model 1: Bert + linear classifier
 
 The first model is a neural network consisting of several layers with distinct functions: 
 - The first layers follow the structure of a Bert network. Thus this set of layers aims to produce a vectorization of words taking into account their context. \
@@ -29,6 +29,12 @@ The key is here both in the Transformers architecture of this network and in the
 A first element which must be added upstream of the model is the tokenizer. Indeed, Bert models do not consider words as input but only WordPieces and the tokenizer takes care of this task. For example the word playing gives 2 tokens play + ##ing.
 
 ![Model architecture](/data/readme/model_architecture.png)
+
+### Model 1Bis: Bert + CRF classifier
+
+This variant of model 1 implements a more complex model to classify. After the last linear multiconnected layer a Conditionnal Random Field (CRF) is added.
+
+![Model CRF architecture](/data/readme/crf.png)
 
 ### Model 2: Flair
 
@@ -42,7 +48,10 @@ The main file, pypa.py, must be launched via a terminal and offers various funct
 <pre>
 │
 ├── <b>scr</b> : <i></i>
-│   ├── <b>models</b> : <i>a folder containing modified models such as bert in order to be able to change the loss, among other things</i>
+│   ├── <b>models</b> : 
+│   │   ├── <b>bert_model_bis</b> :<i>a file containing the modified version of Model 1 in order to be able to change the loss and Model 1Bis</i>
+│   │   ├── <b>linear_model</b> :<i>classifier of Model 2</i>
+│   │   ├── <b>torchcrf</b> :<i>Implementation of CRF in pytorch done by https://github.com/kmkurn/pytorch-crf#egg=pytorch_crf</i>
 │   ├── <b>parsers</b> : <i>a folder containing scripts which can parse respectively the 2006, 2009 and 2014 dataset of n2c2</i>
 │   ├── <b>utils</b> : <i>Transversal functions that manage folders or the display of metrics, for example</i>
 │   ├── <b>dataset.py</b> : <i>a file to finish the pre-processing, with tasks such as creating the batches</i>
@@ -96,9 +105,27 @@ optional arguments:
                         classifier
   --modified_model      Uses a modified bert model instead of transformer's
                         one
-  --ignore_out          Ignores out-type labels in the loss calculation
-  --weighted_loss {batch,global,less_out}
-                        XXXXXXXXXXXXX
+  --weighted_loss {batch,global,less_out, ignore_out}
+                        By default, the loss used is CrossEntropy from
+                        nn.torch. With x the output of the model and t the
+                        values to be predicted. If x= [x_{1} , - , x_{n}] =
+                        [[p_{1,1}, - , p_{1,k}],\\ [| , - , |],\\ [p_{n,1} , -
+                        , p_{n,k}]] and t = [t_{1} , - , t_{n}] So L(x,t) =
+                        mean_{i}(L_{1}(x_{i}, t_{i})) with L_{1}(x_{i},
+                        t_{i})=-\log\left(\frac{\exp(p_{i,t_{i}})}{\sum_j
+                        \exp(p_{i,j})}\right). With global, L_{1} is replaced
+                        by L_{3} being : L_{3}(x_{i},
+                        t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i}) with w_{t_{i}}=
+                        \frac{max_{j}(num_t_{j})}{num_t_{i}} where num_t_{i}
+                        is the total number of t_{i} in the train set. With
+                        less_out, L_{1} is replaced by L_{4} being :
+                        L_{4}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i}, t_{i}) with
+                        w_{t_{i}}= 0.5 if t_{i} describes class out 1
+                        otherwise With ignore_out, L_{1} is replaced by L_{2}
+                        being : L_{2}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i},
+                        t_{i}) with w_{t_{i}}= 0 if t_{i} describes class out
+                        1 otherwise
+
   --l2_regularization L2_REGULARIZATION
                         add L2-regularization with the option 'weight decay'
                         of the optimizer. Give the value of the bias to add to
@@ -107,6 +134,9 @@ optional arguments:
   --reuse_emb REUSE_EMB
                         For Flair reuse the embedding if we already computed
                         it
+  --noise_train_dataset
+                        add tag noise in train dataset
+  --bert_crf            use bert CRF
 ```
 
 
