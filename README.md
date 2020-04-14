@@ -28,13 +28,13 @@ The key is here both in the Transformers architecture of this network and in the
 
 A first element which must be added upstream of the model is the tokenizer. Indeed, Bert models do not consider words as input but only WordPieces and the tokenizer takes care of this task. For example the word playing gives 2 tokens play + ##ing.
 
-![Model architecture](/data/readme/model_architecture.png =100x)
+<img src="/data/readme/model_architecture.png" alt="drawing" width="200"/>
 
 ### Model 1Bis: Bert + CRF classifier
 
 This variant of model 1 implements a more complex model to classify. After the last linear multiconnected layer a Conditionnal Random Field (CRF) is added.
 
-![Model CRF architecture](/data/readme/crf.png =100x)
+<img src="/data/readme/crf.png" alt="drawing2" width="200"/>
 
 ### Model 2: Flair
 
