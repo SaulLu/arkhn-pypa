@@ -38,6 +38,7 @@ This variant of model 1 implements a more complex model to classify. After the l
 
 ### Model 2: Flair
 
+This second model is composed of an embedding flair then a linear classifier to perform the classification.
 
 ## Architecture 
 
