@@ -266,9 +266,6 @@ class BertForTokenClassificationCRF(BertPreTrainedModel):
 
         if labels is not None:
             if attention_mask is not None:
-                print(f"sequence_output: {sequence_output.size()}")
-                print(f"labels: {labels.size()}")
-                print(f"attention_mask: {attention_mask.size()}")
                 
                 attention_mask = attention_mask.to(torch.uint8)
                 loss  = - self.classifier(emissions=sequence_output, tags=labels, mask=attention_mask)
