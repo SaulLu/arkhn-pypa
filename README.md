@@ -125,7 +125,6 @@ optional arguments:
                         being : L_{2}(x_{i}, t_{i})=w_{t_{i}}L_{1}(x_{i},
                         t_{i}) with w_{t_{i}}= 0 if t_{i} describes class out
                         1 otherwise
-
   --l2_regularization L2_REGULARIZATION
                         add L2-regularization with the option 'weight decay'
                         of the optimizer. Give the value of the bias to add to
